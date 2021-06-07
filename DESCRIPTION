@@ -1,6 +1,6 @@
 Package: tidywikidatar
 Title: Explore 'Wikidata' Through Tidy Data Frames
-Version: 0.2.0
+Version: 0.3.0
 Authors@R: 
     c(person(given = "Giorgio",
              family = "Comai",
@@ -15,15 +15,16 @@ Encoding: UTF-8
 RoxygenNote: 7.1.1
 Imports: magrittr, dplyr, tidyr, WikidataR, stringr, glue, DBI,
         RSQLite, tibble, purrr, usethis, WikidataQueryServiceR, fs,
-        rlang (>= 0.1.2)
-Suggests: spelling, roxygen2, testthat (>= 3.0.0)
+        rlang (>= 0.1.2), progress
+Suggests: spelling, roxygen2, testthat (>= 3.0.0), knitr, rmarkdown
 Config/testthat/edition: 3
 Language: en-US
 URL: https://edjnet.github.io/tidywikidatar/
+VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2021-04-15 11:29:22 UTC; g
+Packaged: 2021-06-07 15:03:46 UTC; g
 Author: Giorgio Comai [aut, cre, cph] (<https://orcid.org/0000-0002-0515-9542>),
   EDJNet [fnd]
 Maintainer: Giorgio Comai <g@giorgiocomai.eu>
 Repository: CRAN
-Date/Publication: 2021-04-19 07:50:02 UTC
+Date/Publication: 2021-06-07 16:10:02 UTC

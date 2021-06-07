@@ -20,20 +20,53 @@ If you want to benefit of the wealth of information stored by Wikidata,
 but you do not like SPARQL queries and nested lists, then you may find
 `tidywikidatar` useful. If you prefer working with nested lists and
 SPARQL queries, or if you plan to build more complex queries, then you
-should probably use
-[`WikidataR`](https://github.com/Ironholds/WikidataR) or Wikimedia’s own
+should probably use [`WikidataR`](https://github.com/TS404/WikidataR) or
+Wikimedia’s own
 [`WikidataQueryServiceR`](https://github.com/wikimedia/WikidataQueryServiceR)
 (under the hood, `tidywikidatar` is largely based on those packages).
 
 ## Installation
 
-You can install `tidywikidatar` from
-[Github](https://github.com/EDJNet/tidywikidatar) with:
+You can install the released version of `tidywikidatar` from
+[CRAN](https://CRAN.R-project.org) with:
+
+``` r
+install.packages("tidywikidatar")
+```
+
+For the latest fixes and improvements, you can install the development
+version from [Github](https://github.com/EDJNet/tidywikidatar) with:
 
 ``` r
 # install.packages("remotes")
 remotes::install_github("EDJNet/tidywikidatar")
 ```
+
+## Limitations and known issues
+
+`tidywikidatar` strives to strike a balance between ease of use and full
+access to information available on Wikidata. This means that, for
+examples, dates are returned as simple text strings, without
+accompanying details such as calendar (e.g. Julian or Gregorian) and
+precision (e.g. precise just to the level of century). Some amounts are
+returned as numeric strings, without the accompanying unit of
+measurement. The user should be aware of such issues in their own use
+cases, and consider using other packages if such matters are determinant
+for them.
+
+`tidywikidatar` is most useful in particular for the exploratory
+analysis of relatively small numbers of wikidata items (dozens or
+hundreds), but becomes quickly less efficient when asking for many
+properties or thousands of items. Functions will take their time, but
+will eventually complete. Some performance improvements may come with
+future versions of `tidywikidatar`, but for larger batches of data
+(large number of items/many properties), well formed queries will remain
+more efficient.
+
+### Known issues
+
+  - `tw_search()` always returns label and description in English (to be
+    fixed)
 
 ## Before you start
 
@@ -74,14 +107,16 @@ current working directory under a `tw_data` folder. It may be useful to
 store them in a folder where they can be retrieved easily even when
 working on different projects, but this is obviously a matter of
 personal taste. You can enable caching for the current session with
-`tw_enable_cache()` and set the cache folder to be used throughout a
-session with `tw_set_cache_folder()`. The first lines of a script using
-`tidywikidatar` would often look like this:
+`tw_enable_cache()`, set the cache folder to be used throughout a
+session with `tw_set_cache_folder()`, and set the language used by all
+functions (if not set, it defaults to English). The first lines of a
+script using `tidywikidatar` would often look like this:
 
 ``` r
 library("tidywikidatar")
 tw_enable_cache()
 tw_set_cache_folder(path = fs::path(fs::path_home_r(), "R", "tw_data"))
+tw_set_language(language = "en")
 tw_create_cache_folder(ask = FALSE)
 ```
 
@@ -482,7 +517,7 @@ dataframe with all women who are resistance fighters on Wikidata.
 
 ``` r
 tw_query(query = query_df)
-#> # A tibble: 651 x 3
+#> # A tibble: 662 x 3
 #>    id      label            description                                         
 #>    <chr>   <chr>            <chr>                                               
 #>  1 Q304262 Hannie van Leeu… Dutch politician (1926-2018)                        
@@ -495,7 +530,7 @@ tw_query(query = query_df)
 #>  8 Q452272 Charlotte Delbo  French writer and resistance fighter (1913-1985)    
 #>  9 Q457505 Danielle Casano… French resistance member (1909-1943)                
 #> 10 Q459656 Suzanne Spaak    Belgian anti-Nazi resistance worker and counterinte…
-#> # … with 641 more rows
+#> # … with 652 more rows
 ```
 
 Or perhaps, you are interested only in women who are resistance fighters
@@ -513,20 +548,20 @@ tibble::tribble(
   "P27", "Q142"
 ) %>% # Country of citizenship: France
   tw_query(language = c("it", "fr"))
-#> # A tibble: 101 x 3
-#>    id      label                description                                     
-#>    <chr>   <chr>                <chr>                                           
-#>  1 Q270319 Christiane Desroche… egittologa e archeologa francese                
-#>  2 Q283654 Marija Skobcova      suora e santa russa, vittima dell'Olocausto     
-#>  3 Q35740… Yvette Farnoux       résistante française                            
-#>  4 Q35741… Yvonne Abbas         résistante française                            
-#>  5 Q26965… Yolande Beekman      espionne et agente secret des Special Operation…
-#>  6 Q30097… Cécile Cerf          résistante française                            
-#>  7 Q30812… Francine Fromond     <NA>                                            
-#>  8 Q31324… Henriette Moriamé    <NA>                                            
-#>  9 Q31760… Jeanne Gaillard      historienne et résistante française             
-#> 10 Q31760… Jeanne Laurent       scrittrice francese                             
-#> # … with 91 more rows
+#> # A tibble: 112 x 3
+#>    id        label                      description                             
+#>    <chr>     <chr>                      <chr>                                   
+#>  1 Q270319   Christiane Desroches Nobl… egittologa e archeologa francese        
+#>  2 Q283654   Marija Skobcova            suora e santa russa, vittima dell'Oloca…
+#>  3 Q15970412 Raymonde Tillon            femme politique française               
+#>  4 Q16262713 Simone Schloss             résistante communiste française         
+#>  5 Q18121470 Antoinette d'Harcourt      poétesse et résistante française        
+#>  6 Q19300907 Lucette Pla-Justafré       enseignante et personnalité politique f…
+#>  7 Q19631204 Cécile Rol-Tanguy          résistante française                    
+#>  8 Q20895003 Hélène Jakubowicz          résistante française                    
+#>  9 Q21009704 Madeleine Passot           résistante communiste française         
+#> 10 Q21069334 Mireille Albrecht          fille de la résistante Berty Albrecht   
+#> # … with 102 more rows
 ```
 
 You can also ask other fields, beyond label and description, using the
@@ -571,23 +606,6 @@ used; `tw_search()`, `tw_get()`, and `tw_get_qualifiers()`, for example,
 store data in different files.
 
 `tw_query()` is never cached.
-
-## Limitations
-
-`tidywikidatar` strives to strike a balance between ease of use and full
-access to information available on Wikidata. This means that, for
-examples, dates are returned as simple text strings, without
-accompanying details such as calendar (e.g. Julian or Gregorian) and
-precision (e.g. precise just to the level of century). Some amounts are
-returned as numeric strings, without the accompanying unit of
-measurement. The user should be aware of such issues in their own use
-cases, and consider using other packages if such matters are determinant
-for them.
-
-## Known issues
-
-  - `tw_search()` always returns label and description in English (to be
-    fixed)
 
 ## Copyright and credits
 
