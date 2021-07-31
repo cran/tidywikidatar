@@ -1,6 +1,6 @@
 Package: tidywikidatar
 Title: Explore 'Wikidata' Through Tidy Data Frames
-Version: 0.3.0
+Version: 0.4.0
 Authors@R: 
     c(person(given = "Giorgio",
              family = "Comai",
@@ -9,7 +9,7 @@ Authors@R:
              comment = c(ORCID = "0000-0002-0515-9542")), 
       person(given = "EDJNet",
              role = "fnd"))
-Description: Query 'Wikidata' API <https://wikidata.org/> with ease, get tidy data frames in response, and cache data in a local 'SQLite' database.
+Description: Query 'Wikidata' API <https://www.wikidata.org/wiki/Wikidata:Main_Page> with ease, get tidy data frames in response, and cache data in a local 'SQLite' database.
 License: MIT + file LICENSE
 Encoding: UTF-8
 RoxygenNote: 7.1.1
@@ -22,9 +22,9 @@ Language: en-US
 URL: https://edjnet.github.io/tidywikidatar/
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2021-06-07 15:03:46 UTC; g
+Packaged: 2021-07-31 12:58:20 UTC; g
 Author: Giorgio Comai [aut, cre, cph] (<https://orcid.org/0000-0002-0515-9542>),
   EDJNet [fnd]
 Maintainer: Giorgio Comai <g@giorgiocomai.eu>
 Repository: CRAN
-Date/Publication: 2021-06-07 16:10:02 UTC
+Date/Publication: 2021-07-31 13:20:02 UTC
