@@ -1,15 +1,17 @@
-7b08d7e6275eeb2b43c785e12676319e *DESCRIPTION
+62294cc575cb5fe73bfc943736c154d8 *DESCRIPTION
 78cd4f83897359300a535358d93b2286 *LICENSE
-90ff6a59403040ae7e20ef9c98cb6e08 *NAMESPACE
-1a58eddf33f0a135e45313980147cdb0 *NEWS.md
+7de903db2c917f2054849c013ec79d3b *NAMESPACE
+89169eb9052ce3b1cee303974a4aeca4 *NEWS.md
 58b7c96c2cea5b47b16d02fcc5af2182 *R/tw_caching.R
 47efe89d75d7d835c6d31fd6dbe44924 *R/tw_check.R
+f47967a97e752aa9022949a9904621de *R/tw_check_qid.R
 bdb6f6dd48738646c95d318023419ef8 *R/tw_connect_to_cache.R
 bd16030f55b681b0c58068c7d01e5efb *R/tw_filter.R
-35992ea848d38aa670da7f5e574484e3 *R/tw_get.R
+2744dea913707bebc3f947d764c1e0fd *R/tw_get.R
 33e8105c970a2300cdef32b358c72466 *R/tw_get_cached_item.R
 b9638d4c30b45bf6c91c6afdbe099a19 *R/tw_get_cached_search.R
-e5bbce4811a662e8b21f9b7c04a3c8f5 *R/tw_get_others.R
+a2c11115b2ce402a37c9470dc8caf9f3 *R/tw_get_field.R
+a8f684281fbe0012a6b8ef0eabbd4cff *R/tw_get_others.R
 d0e4ab434c79a632022eb02d6598df38 *R/tw_get_property.R
 64933f3dd81d3b9ee2d73dfdf77a70f2 *R/tw_get_property_label_description.R
 fb4ca52e808cb656bdbb69ab102ca8eb *R/tw_get_property_with_details.R
@@ -33,6 +35,7 @@ e8e1ef96bbd7f7b301d841c6ca7aafee *man/tidyeval.Rd
 86a917306b04a910f11a03198fb86fc3 *man/tw_check_cache.Rd
 acc3af902a1f5ff4d7e6371d1693e5a8 *man/tw_check_cache_folder.Rd
 96e1917878dc3ef9dbc1b03743660eac *man/tw_check_cached_items.Rd
+e553f879ececbef7e9e8627cad1d8f39 *man/tw_check_qid.Rd
 af0bb376ca325315b56734ee60837451 *man/tw_check_search.Rd
 0a69df1d50cc6d73ec0d2d1afadfdd25 *man/tw_connect_to_cache.Rd
 849fe35830cbb59e63d554e3a6bb593c *man/tw_create_cache_folder.Rd
@@ -49,6 +52,7 @@ acf9eca99be75edb837af08055a3a3fb *man/tw_get_cache_table_name.Rd
 b58b811ddf3b8f8003502fe24e5e5a99 *man/tw_get_cached_qualifiers.Rd
 d72128ffecc06c5743a5aeff0a67e5b9 *man/tw_get_cached_search.Rd
 56b8e2c5b1176f5b76cb65095df8bc72 *man/tw_get_description.Rd
+791bf2954e122be7368a110e1ebad1b5 *man/tw_get_field.Rd
 6db6018ddc96730ea1475259b486dc71 *man/tw_get_image.Rd
 4ab8e2223e4fde8a94be69d885d26ac0 *man/tw_get_label.Rd
 a1c20db910b9cad88c6b28b277d73d3f *man/tw_get_property.Rd
@@ -76,7 +80,7 @@ f28a21b8f82643b06cde1d6f80e8dd06 *man/tw_write_qualifiers_to_cache.Rd
 e998605991e5a8fcbd53e80650c56e24 *tests/testthat.R
 9570e9506ad6d4b7e06358fd999be5a6 *tests/testthat/test-cache.R
 594390ed7fc32378f4e6df4f1383ecd4 *tests/testthat/test-get.R
-a30287258d0e4c9af969b86b325e541b *tests/testthat/test-get_many.R
+39752de7c189acbc4715be78df4b77d8 *tests/testthat/test-get_many.R
 d1ab92ab032d1e8e725ec09f55389fa8 *tests/testthat/test-get_others.R
 ecad6833ce94af3659420c3aaef5e21d *tests/testthat/test-get_properties.R
 2ad071641e3ea0d7674bae1dfa0bac83 *tests/testthat/test-get_qualifiers.R
