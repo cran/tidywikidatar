@@ -18,29 +18,17 @@ tw_enable_cache()
 #  
 
 ## ----eval = FALSE-------------------------------------------------------------
-#  tw_enable_cache()
-#  
-#  item_df <- tw_get(id = c("Q1", "Q2", "Q3", "Q4", "Q5"),
-#                    cache_connection = DBI::dbConnect(odbc::odbc(),
-#                                     Driver = "MariaDB",
-#                                     Host = "localhost",
-#                                     database = "Zu5oobei9heloquoa6Shahwu",
-#                                     UID = "Xeit6dieSho7eongamuiyieW",
-#                                     PWD = "Oot7moo4einguJahgahwi8oh"
-#  ))
+#  tw_enable_cache(SQLite = FALSE)
+#  tw_set_cache_db(driver = "MySQL",
+#                  host = "localhost",
+#                  port = 3306,
+#                  database = "tidywikidatar",
+#                  user = "secret_username",
+#                  pwd = "secret_password")
 #  
 #  
-#  tw_get_cached_item(id = c("Q1", "Q2"),
-#                     cache_connection = DBI::dbConnect(odbc::odbc(),
-#                                                       Driver = "MariaDB",
-#                                                       Host = "localhost",
-#                                                       database = "Zu5oobei9heloquoa6Shahwu",
-#                                                       UID = "Xeit6dieSho7eongamuiyieW",
-#                                                       PWD = "Oot7moo4einguJahgahwi8oh"
-#                     ))
-#  
-#  
-#  
+#  # for testing, consider running a local database e.g. with:
+#  # docker run --name tidywikidatar_db -p 3306:3306 -e MYSQL_ROOT_PASSWORD=secret_root_password -e MYSQL_USER=secret_username -e MYSQL_PASSWORD=secret_password -e MYSQL_DATABASE=tidywikidatar mysql:latest
 
 ## -----------------------------------------------------------------------------
 tw_get_cache_table_name(type = "item", language = "en")

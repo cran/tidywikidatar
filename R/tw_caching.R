@@ -1,6 +1,6 @@
 #' Creates the base cache folder where `tidywikidatar` caches data.
 #'
-#' @param ask Logical, defaults to TRUE. If FALSE, and cache folder does not exist, it just creates it without asking (useful for interactive sessions).
+#' @param ask Logical, defaults to TRUE. If FALSE, and cache folder does not exist, it just creates it without asking (useful for non-interactive sessions).
 #'
 #' @return Nothing, used for its side effects.
 #' @export
@@ -63,19 +63,120 @@ tw_set_cache_folder <- function(path = NULL) {
 tw_get_cache_folder <- tw_set_cache_folder
 
 
+
+#' Set database connection settings for the session
+#'
+#' @param db_settings A list of database connection settings (see example)
+#' @param driver A database driver. Common database drivers include `MySQL`, `PostgreSQL`, and `MariaDB`. See `unique(odbc::odbcListDrivers()[[1]])` for a list of locally available drivers.
+#' @param host Host address, e.g. "localhost".
+#' @param port Port to use to connect to the database.
+#' @param database Database name.
+#' @param user Database user name.
+#' @param pwd Password for the database user.
+#'
+#' @return A list with all given parameters (invisibly).
+#' @export
+#'
+#' @examples
+#' \donttest{
+#' if (interactive()) {
+#'
+#'   # Settings can be provided either as a list
+#'   db_settings <- list(
+#'     driver = "MySQL",
+#'     host = "localhost",
+#'     port = 3306,
+#'     database = "tidywikidatar",
+#'     user = "secret_username",
+#'     pwd = "secret_password"
+#'   )
+#'
+#'   tw_set_cache_db(db_settings)
+#'
+#'   # or as parameters
+#'
+#'   tw_set_cache_db(
+#'     driver = "MySQL",
+#'     host = "localhost",
+#'     port = 3306,
+#'     database = "tidywikidatar",
+#'     user = "secret_username",
+#'     pwd = "secret_password"
+#'   )
+#' }
+#' }
+tw_set_cache_db <- function(db_settings = NULL,
+                            driver = NULL,
+                            host = NULL,
+                            port,
+                            database,
+                            user,
+                            pwd) {
+  if (is.null(db_settings) == TRUE) {
+    if (is.null(driver) == FALSE) Sys.setenv(tw_db_driver = driver)
+    if (is.null(host) == FALSE) Sys.setenv(tw_db_host = host)
+    if (is.null(port) == FALSE) Sys.setenv(tw_db_port = port)
+    if (is.null(database) == FALSE) Sys.setenv(tw_db_database = database)
+    if (is.null(user) == FALSE) Sys.setenv(tw_db_user = user)
+    if (is.null(pwd) == FALSE) Sys.setenv(tw_db_pwd = pwd)
+    return(invisible(
+      list(
+        driver = driver,
+        host = host,
+        port = port,
+        database = database,
+        user = user,
+        pwd = pwd
+      )
+    ))
+  } else {
+    Sys.setenv(tw_db_driver = db_settings$driver)
+    Sys.setenv(tw_db_host = db_settings$host)
+    Sys.setenv(tw_db_port = db_settings$port)
+    Sys.setenv(tw_db_database = db_settings$database)
+    Sys.setenv(tw_db_user = db_settings$user)
+    Sys.setenv(tw_db_pwd = db_settings$pwd)
+    return(invisible(db_settings))
+  }
+}
+
+#' Get database connection settings from the environment
+#'
+#' Typically set with `tw_set_cache_db()`
+#'
+#' @return A list with all database parameters as stored in environment variables.
+#' @export
+#'
+#' @examples
+#'
+#' tw_get_cache_db()
+tw_get_cache_db <- function() {
+  list(
+    driver = Sys.getenv("tw_db_driver"),
+    host = Sys.getenv("tw_db_host"),
+    port = Sys.getenv("tw_db_port"),
+    database = Sys.getenv("tw_db_database"),
+    user = Sys.getenv("tw_db_user"),
+    pwd = Sys.getenv("tw_db_pwd")
+  )
+}
+
+
 #' Enable caching for the current session
+#'
+#' @param SQLite Logical, defaults to TRUE. Set to FALSE to use custom database options. See `tw_set_cache_db()` for details.
 #'
 #' @return Nothing, used for its side effects.
 #' @export
-
 #' @examples
 #' \donttest{
 #' if (interactive()) {
 #'   tw_enable_cache()
 #' }
 #' }
-tw_enable_cache <- function() {
+tw_enable_cache <- function(SQLite = TRUE) {
   Sys.setenv(tw_cache = TRUE)
+  Sys.setenv(tw_cache_SQLite = SQLite)
 }
 
 
@@ -167,24 +268,32 @@ tw_check_cache_folder <- function() {
 #' @export
 #'
 #' @examples
-#'
-#' tw_get(
-#'   id = c("Q180099"),
-#'   language = "en"
-#' )
-#' tw_disconnect_from_cache()
+#' if (interactive()) {
+#'   tw_get(
+#'     id = c("Q180099"),
+#'     language = "en"
+#'   )
+#'   tw_disconnect_from_cache()
+#' }
 tw_disconnect_from_cache <- function(cache = NULL,
                                      cache_connection = NULL,
                                      disconnect_db = TRUE,
                                      language = tidywikidatar::tw_get_language()) {
-  if (tw_check_cache(cache) == TRUE) {
+  if (isFALSE(disconnect_db)) {
+    return(invisible(NULL))
+  }
+
+  if (isTRUE(tw_check_cache(cache))) {
     db <- tw_connect_to_cache(
       connection = cache_connection,
-      language = language
+      language = language,
+      cache = cache
     )
 
-    if (DBI::dbIsValid(dbObj = db)) {
-      if (disconnect_db == TRUE) {
+    if (pool::dbIsValid(dbObj = db)) {
+      if ("Pool" %in% class(db)) {
+        pool::poolClose(db)
+      } else {
         DBI::dbDisconnect(db)
       }
     }

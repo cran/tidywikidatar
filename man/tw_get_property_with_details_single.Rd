@@ -7,7 +7,7 @@
 tw_get_property_with_details_single(id, p)
 }
 \arguments{
-\item{id}{A characther vector, must start with Q, e.g. "Q254" for Wolfgang Amadeus Mozart.}
+\item{id}{A character vector, must start with Q, e.g. "Q254" for Wolfgang Amadeus Mozart.}
 
 \item{p}{A character vector, a property. Must always start with the capital letter "P", e.g. "P31" for "instance of".}
 }
@@ -19,5 +19,5 @@ Gets all details of a property
 }
 \examples{
 # Get "female form of label", including language
-tw_get_property_with_details(id = "Q64733534", p = "P2521")
+tw_get_property_with_details_single(id = "Q64733534", p = "P2521")
 }

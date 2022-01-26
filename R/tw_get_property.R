@@ -1,6 +1,6 @@
 #' Get Wikidata property of one or more items as a tidy data frame
 #'
-#' @param id A characther vector, must start with Q, e.g. "Q254" for Wolfgang Amadeus Mozart.
+#' @param id A character vector, must start with Q, e.g. "Q254" for Wolfgang Amadeus Mozart.
 #' @param p A character vector, a property. Must always start with the capital letter "P", e.g. "P31" for "instance of".
 #' @param language Defaults to language set with `tw_set_language()`; if not set, "en". Use "all_available" to keep all languages. For available language values, see https://www.wikidata.org/wiki/Help:Wikimedia_language_codes/lists/all
 #' @param id_df Default to NULL. If given, it should be a dataframe typically generated with `tw_get_()`, and is used instead of calling Wikidata or using SQLite cache. Ignored when `id` is of length more than one.
@@ -60,7 +60,7 @@ tw_get_property <- function(id,
   if (is.null(id_df)) {
     id_df <- tw_get(
       id = unique_id,
-      cache = tw_check_cache(cache),
+      cache = cache,
       overwrite_cache = overwrite_cache,
       cache_connection = cache_connection,
       language = language,
@@ -72,12 +72,7 @@ tw_get_property <- function(id,
   property_df <- id_df %>%
     dplyr::filter(.data$property %in% p)
   if (nrow(property_df) == 0) {
-    tibble::tibble(
-      id = as.character(NA),
-      property = as.character(NA),
-      value = as.character(NA)
-    ) %>%
-      dplyr::slice(0)
+    return(tidywikidatar::tw_empty_item)
   } else {
     if (length(p) > 1) {
       property_df <- tibble::tibble(property = p) %>%
@@ -86,7 +81,10 @@ tw_get_property <- function(id,
     }
     if (length(id) > 1) {
       property_df <- tibble::tibble(id = id) %>%
-        dplyr::left_join(y = property_df, by = "id")
+        dplyr::left_join(
+          y = property_df,
+          by = "id"
+        )
     }
 
     property_df
@@ -96,9 +94,11 @@ tw_get_property <- function(id,
 
 #' Get Wikidata property of an item as a character vector of the same length as input
 #'
-#' @param id A characther vector, must start with Q, e.g. "Q254" for Wolfgang Amadeus Mozart.
+#' @param id A character vector, must start with Q, e.g. "Q254" for Wolfgang Amadeus Mozart.
 #' @param p A character vector, a property. Must always start with the capital letter "P", e.g. "P31" for "instance of".
 #' @param only_first Logical, defaults to FALSE. If TRUE, it just keeps the first relevant property value for each id (or NA if none is available), and returns a character vector. Warning: this likely discards valid values, so make sure this is really what you want. If FALSE, returns a list of the same length as input, with all values for each id stored in a list if more than one is found.
+#' @param preferred Logical, defaults to FALSE. If TRUE, returns properties that have rank "preferred" if available; if no "preferred" property is found, then it is ignored.
+#' @param latest_start_time Logical, defaults to FALSE. If TRUE, returns the property that has the most recent start time ("P580") as qualifier. If no such qualifier is found, then it is ignored.
 #' @param language Defaults to language set with `tw_set_language()`; if not set, "en". Use "all_available" to keep all languages. For available language values, see https://www.wikidata.org/wiki/Help:Wikimedia_language_codes/lists/all
 #' @param id_df Default to NULL. If given, it should be a dataframe typically generated with `tw_get_()`, and is used instead of calling Wikidata or using SQLite cache. Ignored when `id` is of length more than one.
 #' @param cache Defaults to NULL. If given, it should be given either TRUE or FALSE. Typically set with `tw_enable_cache()` or `tw_disable_cache()`.
@@ -115,17 +115,17 @@ tw_get_property <- function(id,
 #'
 #' # By default, it returns a list of the same length as input,
 #' # no matter how many values for each id/property
-#' tw_get_property_same_length(
-#'   id = c(
-#'     "Q180099",
-#'     "Q228822",
-#'     "Q76857"
-#'   ),
-#'   p = "P26"
-#' )
 #'
 #'
 #' if (interactive()) {
+#'   tw_get_property_same_length(
+#'     id = c(
+#'       "Q180099",
+#'       "Q228822",
+#'       "Q76857"
+#'     ),
+#'     p = "P26"
+#'   )
 #'   # Notice that if no relevant match is found, it returns a NA
 #'   # This is useful for piped operations
 #'
@@ -161,6 +161,8 @@ tw_get_property <- function(id,
 tw_get_property_same_length <- function(id,
                                         p,
                                         only_first = FALSE,
+                                        preferred = FALSE,
+                                        latest_start_time = FALSE,
                                         language = tidywikidatar::tw_get_language(),
                                         id_df = NULL,
                                         cache = NULL,
@@ -172,6 +174,12 @@ tw_get_property_same_length <- function(id,
     id <- id$id
   }
 
+  db <- tw_connect_to_cache(
+    connection = cache_connection,
+    language = language,
+    cache = cache
+  )
+
   property_df <- tw_get_property(
     id = id,
     p = p,
@@ -179,14 +187,34 @@ tw_get_property_same_length <- function(id,
     id_df = id_df,
     cache = cache,
     overwrite_cache = overwrite_cache,
-    cache_connection = cache_connection,
-    disconnect_db = disconnect_db,
+    cache_connection = db,
+    disconnect_db = FALSE,
     wait = wait
   )
 
   if (is.null(property_df)) {
+    if (disconnect_db == TRUE) {
+      if (isTRUE(tw_check_cache(cache))) {
+        tw_disconnect_from_cache(
+          cache = TRUE,
+          cache_connection = db,
+          disconnect_db = disconnect_db,
+          language = language
+        )
+      }
+    }
     return(rep(as.character(NA), length(id)))
   } else if (nrow(property_df) == 0) {
+    if (disconnect_db == TRUE) {
+      if (isTRUE(tw_check_cache(cache))) {
+        tw_disconnect_from_cache(
+          cache = TRUE,
+          cache_connection = db,
+          disconnect_db = disconnect_db,
+          language = language
+        )
+      }
+    }
     if (only_first == TRUE) {
       return(rep(as.character(NA), length(id)))
     } else {
@@ -194,6 +222,75 @@ tw_get_property_same_length <- function(id,
         as.list())
     }
   }
+
+
+
+  if (isTRUE(preferred)) {
+    preferred_df <- property_df %>%
+      dplyr::mutate(rank = factor(rank,
+        levels = c(
+          "preferred",
+          "normal",
+          "deprecated"
+        )
+      )) %>%
+      dplyr::group_by(id) %>%
+      dplyr::arrange(.by_group = TRUE, .data$rank) %>%
+      dplyr::ungroup()
+
+    if (nrow(preferred_df) > 0) {
+      property_df <- preferred_df
+    }
+  }
+
+  if (isTRUE(latest_start_time)) {
+    qualifiers_df <- tw_get_qualifiers(
+      id = id,
+      p = p,
+      language = language,
+      cache = cache,
+      overwrite_cache = overwrite_cache,
+      cache_connection = db,
+      disconnect_db = FALSE,
+      wait = wait
+    )
+
+    qualifiers_latest_start_time_df <- qualifiers_df %>%
+      dplyr::filter(.data$qualifier_property == "P580") %>%
+      dplyr::distinct(.data$id, .data$qualifier_id, .data$qualifier_value, .keep_all = TRUE) %>%
+      dplyr::arrange(.data$qualifier_value) %>%
+      dplyr::group_by(.data$id) %>%
+      dplyr::slice_tail(n = 1) %>%
+      dplyr::ungroup() %>%
+      dplyr::transmute(.data$id,
+        .data$property,
+        value = .data$qualifier_id
+      )
+
+    if (nrow(qualifiers_latest_start_time_df) > 0) {
+      qualifiers_latest_start_time_post_df <- purrr::map_dfr(
+        .x = id,
+        .f = function(current_id) {
+          current_latest_start_time_post_df <- qualifiers_latest_start_time_df %>%
+            dplyr::filter(.data$id == current_id)
+          if (nrow(current_latest_start_time_post_df) > 0) {
+            current_latest_start_time_post_df
+          } else {
+            property_df %>%
+              dplyr::filter(.data$id == current_id)
+          }
+        }
+      )
+
+      property_df <- property_df %>%
+        dplyr::right_join(
+          y = qualifiers_latest_start_time_df %>%
+            dplyr::select(-.data$property),
+          by = c("id", "value")
+        )
+    }
+  }
+
 
   if (only_first == TRUE) {
     property_df_post <- property_df %>%
@@ -219,6 +316,20 @@ tw_get_property_same_length <- function(id,
     )] <- list(as.character(NA))
   }
 
+
+  tw_disconnect_from_cache(
+    cache = TRUE,
+    cache_connection = db,
+    disconnect_db = disconnect_db,
+    language = language
+  )
+
   property_df_out %>%
     dplyr::pull(.data$value)
 }
+
+
+#' @rdname tw_get_property_same_length
+#' @examples tw_get_p(id = "Q180099", "P26")
+#' @export
+tw_get_p <- tw_get_property_same_length

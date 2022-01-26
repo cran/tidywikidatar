@@ -3,8 +3,8 @@
 #'
 #' Please consult the relevant documentation for reusing content outside Wikimedia: https://commons.wikimedia.org/wiki/Commons:Reusing_content_outside_Wikimedia/technical
 #'
-#' @param id A characther vector of length 1, must start with Q, e.g. "Q254" for Wolfgang Amadeus Mozart.
-#' @param format A charachter vector, defaults to 'filename'. If set to 'commons', outputs the link to the Wikimedia Commons page. If set to "embed", outputs a link that can be used to embed.
+#' @param id A character vector of length 1, must start with Q, e.g. "Q254" for Wolfgang Amadeus Mozart.
+#' @param format A character vector, defaults to 'filename'. If set to 'commons', outputs the link to the Wikimedia Commons page. If set to "embed", outputs a link that can be used to embed.
 #' @param width A numeric value, defaults to NULL, relevant only if format is set to 'embed'. If not given, defaults to full resolution image.
 #' @param language Needed for caching, defaults to language set with `tw_set_language()`; if not set, "en". Use "all_available" to keep all languages. For available language values, see https://www.wikidata.org/wiki/Help:Wikimedia_language_codes/lists/all
 #' @param id_df Default to NULL. If given, it should be a dataframe typically generated with `tw_get_()`, and is used instead of calling Wikidata or using SQLite cache. Ignored when `id` is of length more than one.
@@ -82,7 +82,7 @@ tw_get_image <- function(id,
       }
       tibble::tibble(
         id = current_id,
-        image = current_filename
+        image = output_filename
       )
     }
   )
@@ -95,8 +95,8 @@ tw_get_image <- function(id,
 #'
 #' Please consult the relevant documentation for reusing content outside Wikimedia: https://commons.wikimedia.org/wiki/Commons:Reusing_content_outside_Wikimedia/technical
 #'
-#' @param id A characther vector of length 1, must start with Q, e.g. "Q254" for Wolfgang Amadeus Mozart.
-#' @param format A charachter vector, defaults to 'filename'. If set to 'commons', outputs the link to the Wikimedia Commons page. If set to "embed", outputs a link that can be used to embed.
+#' @param id A character vector of length 1, must start with Q, e.g. "Q254" for Wolfgang Amadeus Mozart.
+#' @param format A character vector, defaults to 'filename'. If set to 'commons', outputs the link to the Wikimedia Commons page. If set to "embed", outputs a link that can be used to embed.
 #' @param only_first Defaults to TRUE. If TRUE, returns only the first image associated with a given Wikidata id. If FALSE, returns all images available.
 #' @param as_tibble Defaults to FALSE. If TRUE, returns a data frame instead of a character vector.
 #' @param width A numeric value, defaults to NULL, relevant only if format is set to 'embed'. If not given, defaults to full resolution image.
@@ -108,7 +108,7 @@ tw_get_image <- function(id,
 #' @param disconnect_db Defaults to TRUE. If FALSE, leaves the connection to cache open.
 #' @param wait In seconds, defaults to 0. Time to wait between queries to Wikidata. If data are cached locally, wait time is not applied. If you are running many queries systematically you may want to add some waiting time between queries.
 #'
-#' @return A charachter vector, corresponding to reference to the image in the requested format.
+#' @return A character vector, corresponding to reference to the image in the requested format.
 #' @export
 #'
 #' @examples
@@ -199,7 +199,7 @@ tw_get_image_same_length <- function(id,
 #'
 #' Please consult the relevant documentation for reusing content outside Wikimedia: https://commons.wikimedia.org/wiki/Commons:Reusing_content_outside_Wikimedia/technical
 #'
-#' @param id A characther vector of length 1, must start with Q, e.g. "Q254" for Wolfgang Amadeus Mozart.
+#' @param id A character vector of length 1, must start with Q, e.g. "Q254" for Wolfgang Amadeus Mozart.
 #' @param image_filename Defaults to NULL. If NULL, `image_filename` is obtained from the Wikidata id. If given, must be of the same length as id.
 #' @param only_first Defaults to TRUE. If TRUE, returns metadata only for the first image associated with a given Wikidata id. If FALSE, returns all images available.
 #' @param language Needed for caching, defaults to language set with `tw_set_language()`; if not set, "en". Use "all_available" to keep all languages. For available language values, see https://www.wikidata.org/wiki/Help:Wikimedia_language_codes/lists/all
@@ -208,9 +208,10 @@ tw_get_image_same_length <- function(id,
 #' @param overwrite_cache Logical, defaults to FALSE. If TRUE, it overwrites the table in the local sqlite database. Useful if the original Wikidata object has been updated.
 #' @param cache_connection Defaults to NULL. If NULL, and caching is enabled, `tidywikidatar` will use a local sqlite database. A custom connection to other databases can be given (see vignette `caching` for details).
 #' @param disconnect_db Defaults to TRUE. If FALSE, leaves the connection to cache open.
-#' @param wait In seconds, defaults to 0. Time to wait between queries to Wikidata. If data are cached locally, wait time is not applied. If you are running many queries systematically you may want to add some waiting time between queries.
+#' @param wait In seconds, defaults to 1. Time to wait between queries to the APIs. If data are cached locally, wait time is not applied. If you are running many queries systematically you may want to add some waiting time between queries.
+#' @param attempts Defaults to 5. Number of times it re-attempts to reach the API before failing.
 #'
-#' @return A charachter vector, corresponding to reference to the image in the requested format.
+#' @return A character vector, corresponding to reference to the image in the requested format.
 #' @export
 #'
 #' @examples
@@ -226,10 +227,17 @@ tw_get_image_metadata <- function(id,
                                   overwrite_cache = FALSE,
                                   cache_connection = NULL,
                                   disconnect_db = TRUE,
-                                  wait = 0) {
+                                  wait = 1,
+                                  attempts = 5) {
   if (is.data.frame(id) == TRUE) {
     id <- id$id
   }
+
+  db <- tw_connect_to_cache(
+    connection = cache_connection,
+    language = language,
+    cache = cache
+  )
 
   if (is.null(image_filename)) {
     image_filename <- tw_get_image_same_length(
@@ -241,8 +249,8 @@ tw_get_image_metadata <- function(id,
       id_df = id_df,
       cache = cache,
       overwrite_cache = overwrite_cache,
-      cache_connection = cache_connection,
-      disconnect_db = disconnect_db,
+      cache_connection = db,
+      disconnect_db = FALSE,
       wait = wait
     )
   }
@@ -267,9 +275,10 @@ tw_get_image_metadata <- function(id,
           id_df = id_df,
           cache = cache,
           overwrite_cache = overwrite_cache,
-          cache_connection = cache_connection,
+          cache_connection = db,
           disconnect_db = disconnect_db,
-          wait = wait
+          wait = wait,
+          attempts = attempts
         ),
         by = "id"
       )
@@ -277,6 +286,7 @@ tw_get_image_metadata <- function(id,
   } else if (nrow(input_df_distinct) > 1) {
     if (overwrite_cache == TRUE | tw_check_cache(cache) == FALSE) {
       pb <- progress::progress_bar$new(total = nrow(input_df_distinct))
+
       image_metadata <- purrr::map2_dfr(
         .x = input_df_distinct$image_filename,
         .y = input_df_distinct$id,
@@ -289,15 +299,16 @@ tw_get_image_metadata <- function(id,
             id_df = id_df,
             cache = cache,
             overwrite_cache = overwrite_cache,
-            cache_connection = cache_connection,
+            cache_connection = db,
             disconnect_db = FALSE,
-            wait = wait
+            wait = wait,
+            attempts = attempts
           )
         }
       )
       tw_disconnect_from_cache(
         cache = cache,
-        cache_connection = cache_connection,
+        cache_connection = db,
         disconnect_db = disconnect_db
       )
       return(
@@ -310,17 +321,12 @@ tw_get_image_metadata <- function(id,
     }
 
     if (overwrite_cache == FALSE & tw_check_cache(cache) == TRUE) {
-      db <- tw_connect_to_cache(
-        connection = cache_connection,
-        language = language
-      )
-
       table_name <- tw_get_cache_table_name(
         type = "image_metadata",
         language = language
       )
 
-      if (DBI::dbExistsTable(conn = db, name = table_name) == TRUE) {
+      if (pool::dbExistsTable(conn = db, name = table_name) == TRUE) {
         db_result <- tryCatch(
           dplyr::tbl(src = db, table_name) %>%
             dplyr::filter(.data$id %in% stringr::str_to_upper(id)),
@@ -332,7 +338,7 @@ tw_get_image_metadata <- function(id,
           image_metadata_from_cache_df <- logical(1L)
         } else {
           image_metadata_from_cache_df <- db_result %>%
-            tibble::as_tibble()
+            dplyr::collect()
         }
       } else {
         image_metadata_from_cache_df <- logical(1L)
@@ -351,7 +357,7 @@ tw_get_image_metadata <- function(id,
     if (nrow(image_metadata_not_in_cache) == 0) {
       tw_disconnect_from_cache(
         cache = cache,
-        cache_connection = cache_connection,
+        cache_connection = db,
         disconnect_db = disconnect_db
       )
       return(
@@ -363,6 +369,7 @@ tw_get_image_metadata <- function(id,
       )
     } else if (nrow(image_metadata_not_in_cache) > 0) {
       pb <- progress::progress_bar$new(total = nrow(image_metadata_not_in_cache))
+
       image_metadata_not_in_cache_df <- purrr::map2_dfr(
         .x = image_metadata_not_in_cache$image_filename,
         .y = image_metadata_not_in_cache$id,
@@ -376,16 +383,17 @@ tw_get_image_metadata <- function(id,
             id_df = id_df,
             cache = cache,
             overwrite_cache = overwrite_cache,
-            cache_connection = cache_connection,
+            cache_connection = db,
             disconnect_db = FALSE,
-            wait = wait
+            wait = wait,
+            attempts = attempts
           )
         }
       )
 
       tw_disconnect_from_cache(
         cache = cache,
-        cache_connection = cache_connection,
+        cache_connection = db,
         disconnect_db = disconnect_db
       )
 
@@ -406,7 +414,7 @@ tw_get_image_metadata <- function(id,
 #'
 #' Please consult the relevant documentation for reusing content outside Wikimedia: https://commons.wikimedia.org/wiki/Commons:Reusing_content_outside_Wikimedia/technical
 #'
-#' @param id A characther vector of length 1, must start with Q, e.g. "Q254" for Wolfgang Amadeus Mozart.
+#' @param id A character vector of length 1, must start with Q, e.g. "Q254" for Wolfgang Amadeus Mozart.
 #' @param image_filename Defaults to NULL. If NULL, `image_filename` is obtained from the Wikidata id. If given, must be of the same length as id.
 #' @param only_first Defaults to TRUE. If TRUE, returns metadata only for the first image associated with a given Wikidata id. If FALSE, returns all images available.
 #' @param language Needed for caching, defaults to language set with `tw_set_language()`; if not set, "en". Use "all_available" to keep all languages. For available language values, see https://www.wikidata.org/wiki/Help:Wikimedia_language_codes/lists/all
@@ -416,9 +424,10 @@ tw_get_image_metadata <- function(id,
 #' @param read_cache Logical, defaults to TRUE. Mostly used internally to prevent checking if an item is in cache if it is already known that it is not in cache.
 #' @param cache_connection Defaults to NULL. If NULL, and caching is enabled, `tidywikidatar` will use a local sqlite database. A custom connection to other databases can be given (see vignette `caching` for details).
 #' @param disconnect_db Defaults to TRUE. If FALSE, leaves the connection to cache open.
-#' @param wait In seconds, defaults to 0. Time to wait between queries to Wikidata. If data are cached locally, wait time is not applied. If you are running many queries systematically you may want to add some waiting time between queries.
+#' @param wait In seconds, defaults to 1. Time to wait between queries to the APIs. If data are cached locally, wait time is not applied. If you are running many queries systematically you may want to add some waiting time between queries.
+#' @param attempts Defaults to 5. Number of times it re-attempts to reach the API before failing.
 #'
-#' @return A charachter vector, corresponding to reference to the image in the requested format.
+#' @return A character vector, corresponding to reference to the image in the requested format.
 #' @export
 #'
 #' @examples
@@ -435,10 +444,20 @@ tw_get_image_metadata_single <- function(id,
                                          read_cache = TRUE,
                                          cache_connection = NULL,
                                          disconnect_db = TRUE,
-                                         wait = 0) {
+                                         wait = 1,
+                                         attempts = 5) {
   if (length(id) > 1) {
     usethis::ui_stop("`tw_get_image_metadata_single()` requires `id` of length 1. Consider using `tw_get_image_metadata()`.")
   }
+
+
+  db <- tw_connect_to_cache(
+    connection = cache_connection,
+    language = language,
+    cache = cache
+  )
+
+
   if (is.null(image_filename)) {
     image_filename <- tw_get_image_same_length(
       id = stringr::str_to_upper(id),
@@ -448,25 +467,20 @@ tw_get_image_metadata_single <- function(id,
       id_df = id_df,
       cache = cache,
       overwrite_cache = overwrite_cache,
-      cache_connection = cache_connection,
-      disconnect_db = disconnect_db,
+      cache_connection = db,
+      disconnect_db = FALSE,
       wait = wait
     )
   }
 
 
   if (tw_check_cache(cache) == TRUE & overwrite_cache == FALSE & read_cache == TRUE) {
-    db <- tw_connect_to_cache(
-      connection = cache_connection,
-      language = language
-    )
-
     table_name <- tw_get_cache_table_name(
       type = "image_metadata",
       language = language
     )
 
-    if (DBI::dbExistsTable(conn = db, name = table_name) == TRUE) {
+    if (pool::dbExistsTable(conn = db, name = table_name) == TRUE) {
       db_result <- tryCatch(
         dplyr::tbl(src = db, table_name) %>%
           dplyr::filter(.data$id %in% stringr::str_to_upper(id)),
@@ -481,6 +495,11 @@ tw_get_image_metadata_single <- function(id,
           tibble::as_tibble() %>%
           dplyr::distinct()
         if (nrow(image_metadata_from_cache_df) > 0) {
+          tw_disconnect_from_cache(
+            cache = cache,
+            cache_connection = db,
+            disconnect_db = disconnect_db
+          )
           return(image_metadata_from_cache_df)
         } else {
           image_metadata_from_cache_df <- logical(1L)
@@ -493,26 +512,27 @@ tw_get_image_metadata_single <- function(id,
 
   Sys.sleep(time = wait)
 
+  empty_df <- data.frame(matrix(
+    ncol = 19,
+    nrow = 1,
+    data = as.character(NA),
+    dimnames = list(
+      NULL,
+      c(
+        "id", "image_filename", "object_name", "image_description",
+        "categories", "assessments", "credit", "artist", "permission",
+        "license_short_name", "license_url", "license", "usage_terms",
+        "attribution_required", "copyrighted", "restrictions", "date_time",
+        "date_time_original", "commons_metadata_extension"
+      )
+    )
+  )) %>%
+    tibble::as_tibble()
+
   image_metadata <- purrr::map_dfr(
     .x = image_filename,
     .f = function(current_image_filename) {
       if (is.na(current_image_filename)) {
-        empty_df <- data.frame(matrix(
-          ncol = 19,
-          nrow = 1,
-          data = as.character(NA),
-          dimnames = list(
-            NULL,
-            c(
-              "id", "image_filename", "object_name", "image_description",
-              "categories", "assessments", "credit", "artist", "permission",
-              "license_short_name", "license_url", "license", "usage_terms",
-              "attribution_required", "copyrighted", "restrictions", "date_time",
-              "date_time_original", "commons_metadata_extension"
-            )
-          )
-        )) %>%
-          tibble::as_tibble()
         empty_df$id[1] <- stringr::str_to_upper(id)
         empty_df$copyrighted <- as.logical(NA)
         empty_df$attribution_required <- as.logical(NA)
@@ -526,7 +546,28 @@ tw_get_image_metadata_single <- function(id,
         "&format=json"
       )
 
-      json_as_list <- jsonlite::read_json(api_link)
+
+      api_result <- FALSE
+
+      attempt_n <- 1
+
+      while (isFALSE(api_result) & attempt_n <= attempts) {
+        attempt_n <- sum(attempt_n, 1)
+        api_result <- tryCatch(
+          jsonlite::read_json(api_link),
+          error = function(e) {
+            logical(1L)
+          }
+        )
+        Sys.sleep(time = wait)
+      }
+
+
+      if (isFALSE(api_result)) {
+        usethis::ui_stop("It has not been possible to reach the API with {attempts} attempts. Consider increasing the waiting time between calls with the {usethis::ui_code('wait')} parameter or check your internet connection")
+      } else {
+        json_as_list <- api_result
+      }
 
       images <- json_as_list %>%
         purrr::pluck("query", "pages", 1, "imageinfo")
@@ -661,11 +702,9 @@ tw_get_image_metadata_single <- function(id,
   )
 
   if (tw_check_cache(cache) == TRUE) {
-    db <- tw_connect_to_cache(connection = cache_connection, language = language)
-
     table_name <- tw_get_cache_table_name(type = "image_metadata", language = language)
 
-    if (DBI::dbExistsTable(conn = db, name = table_name) == FALSE) {
+    if (pool::dbExistsTable(conn = db, name = table_name) == FALSE) {
       # do nothing: if table does not exist, previous data cannot be there
     } else {
       if (overwrite_cache == TRUE) {
@@ -674,26 +713,29 @@ tw_get_image_metadata_single <- function(id,
           table_name = table_name,
           .con = db
         )
-        result <- DBI::dbExecute(
+        result <- pool::dbExecute(
           conn = db,
           statement = statement
         )
       }
     }
 
-    DBI::dbWriteTable(db,
+    pool::dbWriteTable(db,
       name = table_name,
       value = image_metadata,
       append = TRUE
     )
 
-    if (disconnect_db == TRUE) {
-      DBI::dbDisconnect(db)
-    }
+    tw_disconnect_from_cache(
+      cache = cache,
+      cache_connection = db,
+      disconnect_db = disconnect_db,
+      language = language
+    )
   }
   tw_disconnect_from_cache(
     cache = cache,
-    cache_connection = cache_connection,
+    cache_connection = db,
     disconnect_db = disconnect_db
   )
   image_metadata

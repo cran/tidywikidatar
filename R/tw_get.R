@@ -1,6 +1,6 @@
 #' Return (most) information from a Wikidata item in a tidy format
 #'
-#' @param id A characther vector, must start with Q, e.g. "Q180099" for the anthropologist Margaret Mead. Can also be a data frame of one row, typically generated with `tw_search()` or a combination of `tw_search()` and `tw_filter_first()`.
+#' @param id A character vector, must start with Q, e.g. "Q180099" for the anthropologist Margaret Mead. Can also be a data frame of one row, typically generated with `tw_search()` or a combination of `tw_search()` and `tw_filter_first()`.
 #' @param language Defaults to language set with `tw_set_language()`; if not set, "en". Use "all_available" to keep all languages. For available language values, see https://www.wikidata.org/wiki/Help:Wikimedia_language_codes/lists/all
 #' @param cache Defaults to NULL. If given, it should be given either TRUE or FALSE. Typically set with `tw_enable_cache()` or `tw_disable_cache()`.
 #' @param overwrite_cache Logical, defaults to FALSE. If TRUE, it overwrites the table in the local sqlite database. Useful if the original Wikidata object has been updated.
@@ -28,15 +28,27 @@ tw_get_single <- function(id,
   if (is.data.frame(id) == TRUE) {
     id <- id$id
   }
+
+  id <- tw_check_qid(id)
+
   if (length(id) > 1) {
     usethis::ui_stop("`tw_get_single()` requires `id` of length 1. Consider using `tw_get()`.")
+  }
+
+  if (isTRUE(tw_check_cache(cache))) {
+    db <- tw_connect_to_cache(
+      connection = cache_connection,
+      language = language,
+      cache = cache
+    )
   }
 
   if (tw_check_cache(cache) == TRUE & overwrite_cache == FALSE & read_cache == TRUE) {
     db_result <- tw_get_cached_item(
       id = id,
       language = language,
-      cache_connection = cache_connection,
+      cache = cache,
+      cache_connection = db,
       disconnect_db = disconnect_db
     )
     if (is.data.frame(db_result) & nrow(db_result) > 0) {
@@ -55,12 +67,7 @@ tw_get_single <- function(id,
 
   if (is.character(item)) {
     usethis::ui_oops(item)
-    output <- tibble::tibble(
-      id = as.character(NA),
-      property = as.character(NA),
-      value = as.character(NA)
-    ) %>%
-      dplyr::slice(0)
+    output <- tidywikidatar::tw_empty_item
     attr(output, "warning") <- item
     return(output)
   }
@@ -80,185 +87,31 @@ tw_get_single <- function(id,
         language = language,
         cache = cache,
         overwrite_cache = overwrite_cache,
-        cache_connection = cache_connection,
+        cache_connection = db,
         disconnect_db = disconnect_db,
         wait = wait
       )
     )
   }
 
-  labels <- item %>%
-    purrr::pluck(1, "labels")
-
-  labels_df <- purrr::map_dfr(
-    .x = labels,
-    function(current_label_l) {
-      tibble::tibble(
-        property = paste0("label_", current_label_l$language),
-        value = current_label_l$value
-      )
-    }
+  everything_df <- tw_extract_single(
+    w = item,
+    language = language
   )
-
-  if (language == "all_available") {
-    # do nothing
-  } else {
-    labels_df <- labels_df %>%
-      dplyr::filter(.data$property == stringr::str_c("label_", language))
-  }
-
-  aliases <- item %>% purrr::pluck(1, "aliases")
-
-  if (is.null(aliases)) {
-    aliases_df <- tibble::tibble(
-      property = as.character(NA),
-      values = as.character(NA)
-    ) %>%
-      tidyr::drop_na()
-  } else {
-    aliases_df <- purrr::map_dfr(
-      .x = aliases,
-      function(current_alias_l) {
-        tibble::tibble(
-          property = paste0("alias_", current_alias_l$language),
-          value = current_alias_l$value
-        )
-      }
-    )
-
-    if (language == "all_available") {
-      # do nothing
-    } else {
-      aliases_df <- aliases_df %>%
-        dplyr::filter(.data$property == stringr::str_c("alias_", language))
-    }
-  }
-
-  descriptions <- item %>% purrr::pluck(1, "descriptions")
-
-  if (is.null(descriptions)) {
-    descriptions_df <- tibble::tibble(
-      property = as.character(NA),
-      values = as.character(NA)
-    ) %>%
-      tidyr::drop_na()
-  } else {
-    descriptions_df <- purrr::map_dfr(
-      .x = descriptions,
-      function(current_description_l) {
-        tibble::tibble(
-          property = paste0("description_", current_description_l$language),
-          value = current_description_l$value
-        )
-      }
-    )
-
-    if (language == "all_available") {
-      # do nothing
-    } else {
-      descriptions_df <- descriptions_df %>%
-        dplyr::filter(.data$property == stringr::str_c("description_", language))
-    }
-  }
-
-  claims <- item %>% purrr::pluck(1, "claims")
-
-  claims_df <- purrr::map_dfr(
-    .x = claims,
-    .f = function(current_claim_l) {
-      property <- current_claim_l$mainsnak$property
-
-      value_pre <- claims[[unique(property)]][["mainsnak"]][["datavalue"]][["value"]]
-
-      if (is.null(value_pre)) {
-        value <- as.character("NA")
-      } else if (is.data.frame(value_pre)) {
-        if (is.element("time", names(value_pre))) {
-          value <- value_pre$time
-        } else if (is.element("text", names(value_pre))) {
-          value <- value_pre$text
-        } else if (is.element("amount", names(value_pre))) {
-          value <- value_pre$amount
-        } else if (is.element("latitude", names(value_pre))) {
-          value <- stringr::str_c(value_pre$latitude, value_pre$longitude, sep = ",")
-        } else if (is.element("id", names(value_pre))) {
-          value <- value_pre$id
-        } else if (is.na(value_pre[[1]]) == FALSE) {
-          value <- value_pre[[1]]
-        } else {
-          value <- as.character("NA")
-        }
-      } else if (is.character(value_pre)) {
-        value <- value_pre
-      } else {
-        value <- as.character("NA")
-      }
-
-      tibble::tibble(
-        property = property,
-        value = value
-      )
-    }
-  )
-
-
-  sitelinks <- item %>% purrr::pluck(1, "sitelinks")
-
-  sitelinks_df <- purrr::map_dfr(
-    .x = sitelinks,
-    function(current_sitelink_l) {
-      tibble::tibble(
-        property = paste0("sitelink_", current_sitelink_l$site),
-        value = current_sitelink_l$title
-      )
-    }
-  )
-
-  if (language == "all_available" | nrow(sitelinks_df) == 0) {
-    # do nothing
-  } else {
-    sitelinks_df <- sitelinks_df %>%
-      dplyr::filter((.data$property == stringr::str_c(
-        "sitelink_",
-        language,
-        "wiki"
-      )) | (.data$property == stringr::str_c(
-        "sitelink_",
-        language,
-        "wikiquote"
-      )) | (.data$property == stringr::str_c(
-        "sitelink_",
-        language,
-        "wikisource"
-      )) | (.data$property == "sitelink_commonswiki"))
-  }
-
-  everything_df <- dplyr::bind_rows(
-    labels_df,
-    aliases_df,
-    claims_df,
-    descriptions_df,
-    sitelinks_df
-  ) %>%
-    tibble::as_tibble() %>%
-    dplyr::transmute(
-      id = id,
-      .data$property,
-      .data$value
-    )
 
   if (tw_check_cache(cache) == TRUE) {
     tw_write_item_to_cache(
       item_df = everything_df,
       language = language,
+      cache = cache,
       overwrite_cache = overwrite_cache,
-      cache_connection = cache_connection,
+      cache_connection = db,
       disconnect_db = disconnect_db
     )
   }
   tw_disconnect_from_cache(
     cache = cache,
-    cache_connection = cache_connection,
+    cache_connection = db,
     disconnect_db = disconnect_db
   )
   everything_df
@@ -266,7 +119,7 @@ tw_get_single <- function(id,
 
 #' Return (most) information from a Wikidata item in a tidy format
 #'
-#' @param id A characther vector, must start with Q, e.g. "Q180099" for the anthropologist Margaret Mead. Can also be a data frame of one row, typically generated with `tw_search()` or a combination of `tw_search()` and `tw_filter_first()`.
+#' @param id A character vector, must start with Q, e.g. "Q180099" for the anthropologist Margaret Mead. Can also be a data frame of one row, typically generated with `tw_search()` or a combination of `tw_search()` and `tw_filter_first()`.
 #' @param language Defaults to language set with `tw_set_language()`; if not set, "en". Use "all_available" to keep all languages. For available language values, see https://www.wikidata.org/wiki/Help:Wikimedia_language_codes/lists/all
 #' @param cache Defaults to NULL. If given, it should be given either TRUE or FALSE. Typically set with `tw_enable_cache()` or `tw_disable_cache()`.
 #' @param overwrite_cache Logical, defaults to FALSE. If TRUE, it overwrites the table in the local sqlite database. Useful if the original Wikidata object has been updated.
@@ -299,6 +152,12 @@ tw_get <- function(id,
 
   unique_id <- tw_check_qid(id)
 
+  db <- tw_connect_to_cache(
+    connection = cache_connection,
+    language = language,
+    cache = cache
+  )
+
   if (length(unique_id) == 1) {
     return(
       dplyr::left_join(
@@ -308,7 +167,7 @@ tw_get <- function(id,
           language = language,
           cache = cache,
           overwrite_cache = overwrite_cache,
-          cache_connection = cache_connection,
+          cache_connection = db,
           disconnect_db = disconnect_db,
           wait = wait
         ),
@@ -318,6 +177,7 @@ tw_get <- function(id,
   } else if (length(unique_id) > 1) {
     if (overwrite_cache == TRUE | tw_check_cache(cache) == FALSE) {
       pb <- progress::progress_bar$new(total = length(unique_id))
+
       item_df <- purrr::map_dfr(
         .x = unique_id,
         .f = function(x) {
@@ -327,7 +187,7 @@ tw_get <- function(id,
             language = language,
             cache = cache,
             overwrite_cache = overwrite_cache,
-            cache_connection = cache_connection,
+            cache_connection = db,
             disconnect_db = FALSE,
             wait = wait
           )
@@ -335,7 +195,7 @@ tw_get <- function(id,
       )
       tw_disconnect_from_cache(
         cache = cache,
-        cache_connection = cache_connection,
+        cache_connection = db,
         disconnect_db = disconnect_db
       )
       return(
@@ -351,7 +211,8 @@ tw_get <- function(id,
       items_from_cache_df <- tw_get_cached_item(
         id = unique_id,
         language = language,
-        cache_connection = cache_connection,
+        cache = cache,
+        cache_connection = db,
         disconnect_db = FALSE
       )
 
@@ -360,7 +221,7 @@ tw_get <- function(id,
       if (length(id_items_not_in_cache) == 0) {
         tw_disconnect_from_cache(
           cache = cache,
-          cache_connection = cache_connection,
+          cache_connection = db,
           disconnect_db = disconnect_db
         )
         return(
@@ -372,6 +233,7 @@ tw_get <- function(id,
         )
       } else if (length(id_items_not_in_cache) > 0) {
         pb <- progress::progress_bar$new(total = length(id_items_not_in_cache))
+
         items_not_in_cache_df <- purrr::map_dfr(
           .x = id_items_not_in_cache,
           .f = function(x) {
@@ -381,7 +243,7 @@ tw_get <- function(id,
               language = language,
               cache = cache,
               overwrite_cache = overwrite_cache,
-              cache_connection = cache_connection,
+              cache_connection = db,
               read_cache = FALSE,
               disconnect_db = FALSE,
               wait = wait
@@ -391,9 +253,10 @@ tw_get <- function(id,
 
         tw_disconnect_from_cache(
           cache = cache,
-          cache_connection = cache_connection,
+          cache_connection = db,
           disconnect_db = disconnect_db
         )
+
         dplyr::left_join(
           x = tibble::tibble(id = id),
           y = dplyr::bind_rows(
@@ -405,4 +268,57 @@ tw_get <- function(id,
       }
     }
   }
+}
+
+
+#' Reset qualifiers cache
+#'
+#' Removes the table where qualifiers are cached
+#'
+#' @param language Defaults to language set with `tw_set_language()`; if not set, "en". Use "all_available" to keep all languages. For available language values, see https://www.wikidata.org/wiki/Help:Wikimedia_language_codes/lists/all
+#' @param cache Defaults to NULL. If given, it should be given either TRUE or FALSE. Typically set with `tw_enable_cache()` or `tw_disable_cache()`.
+#' @param cache_connection Defaults to NULL. If NULL, and caching is enabled, `tidywikidatar` will use a local sqlite database. A custom connection to other databases can be given (see vignette `caching` for details).
+#' @param disconnect_db Defaults to TRUE. If FALSE, leaves the connection to cache open.
+#' @param ask Logical, defaults to TRUE. If FALSE, and cache folder does not exist, it just creates it without asking (useful for non-interactive sessions).
+#'
+#' @return Nothing, used for its side effects.
+#' @export
+#'
+#' @examples
+#' if (interactive()) {
+#'   tw_reset_item_cache()
+#' }
+tw_reset_item_cache <- function(language = tidywikidatar::tw_get_language(),
+                                cache = NULL,
+                                cache_connection = NULL,
+                                disconnect_db = TRUE,
+                                ask = TRUE) {
+  db <- tw_connect_to_cache(
+    connection = cache_connection,
+    language = language,
+    cache = cache
+  )
+
+  table_name <- tw_get_cache_table_name(
+    type = "item",
+    language = language
+  )
+
+  if (pool::dbExistsTable(conn = db, name = table_name) == FALSE) {
+    # do nothing: if table does not exist, nothing to delete
+  } else if (isFALSE(ask)) {
+    pool::dbRemoveTable(conn = db, name = table_name)
+    usethis::ui_info(paste0("Item cache reset for language ", sQuote(language), " completed"))
+  } else if (usethis::ui_yeah(x = paste0("Are you sure you want to remove from cache the items table for language: ", sQuote(language), "?"))) {
+    pool::dbRemoveTable(conn = db, name = table_name)
+    usethis::ui_info(paste0("Items cache reset for language ", sQuote(language), " completed"))
+  }
+
+
+  tw_disconnect_from_cache(
+    cache = cache,
+    cache_connection = db,
+    disconnect_db = disconnect_db,
+    language = language
+  )
 }

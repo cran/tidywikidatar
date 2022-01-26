@@ -10,11 +10,12 @@ tw_get_property_description(
   cache = NULL,
   overwrite_cache = FALSE,
   cache_connection = NULL,
+  disconnect_db = TRUE,
   wait = 0
 )
 }
 \arguments{
-\item{property}{A characther vector of length 1, must start with P, e.g. "P31".}
+\item{property}{A character vector of length 1, must start with P, e.g. "P31".}
 
 \item{language}{Defaults to language set with \code{tw_set_language()}; if not set, "en". Use "all_available" to keep all languages. For available language values, see https://www.wikidata.org/wiki/Help:Wikimedia_language_codes/lists/all}
 
@@ -24,10 +25,12 @@ tw_get_property_description(
 
 \item{cache_connection}{Defaults to NULL. If NULL, and caching is enabled, \code{tidywikidatar} will use a local sqlite database. A custom connection to other databases can be given (see vignette \code{caching} for details).}
 
+\item{disconnect_db}{Defaults to TRUE. If FALSE, leaves the connection to cache open.}
+
 \item{wait}{In seconds, defaults to 0. Time to wait between queries to Wikidata. If data are cached locally, wait time is not applied. If you are running many queries systematically you may want to add some waiting time between queries.}
 }
 \value{
-A charachter vector of length 1, with the Wikidata label in the requested languae.
+A character vector of length 1, with the Wikidata label in the requested language.
 }
 \description{
 Get description of a Wikidata property in a given language

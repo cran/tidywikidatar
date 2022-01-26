@@ -40,15 +40,28 @@ tw_search_single <- function(search,
     usethis::ui_stop("`tw_search_single()` requires `search` of length 1. Consider using `tw_search()`.")
   }
 
+
+  db <- tw_connect_to_cache(
+    connection = cache_connection,
+    language = language,
+    cache = cache
+  )
+
   if (tw_check_cache(cache) == TRUE & overwrite_cache == FALSE) {
     db_result <- tw_get_cached_search(
       search = search,
       type = type,
       include_search = include_search,
       language = language,
-      cache_connection = cache_connection
+      cache_connection = db
     )
     if (is.data.frame(db_result) & nrow(db_result) > 0) {
+      tw_disconnect_from_cache(
+        cache = cache,
+        cache_connection = db,
+        disconnect_db = disconnect_db
+      )
+
       return(db_result %>%
         tibble::as_tibble())
     }
@@ -120,7 +133,12 @@ tw_search_single <- function(search,
   }
   search_response_df <- search_response_df %>%
     dplyr::mutate(search = search) %>%
-    dplyr::select(.data$search, .data$id, .data$label, .data$description)
+    dplyr::select(
+      .data$search,
+      .data$id,
+      .data$label,
+      .data$description
+    )
 
   if (tw_check_cache(cache) == TRUE) {
     tw_write_search_to_cache(
@@ -128,12 +146,13 @@ tw_search_single <- function(search,
       type = type,
       language = language,
       overwrite_cache = overwrite_cache,
-      cache_connection = cache_connection
+      cache_connection = db
     )
   }
+
   tw_disconnect_from_cache(
     cache = cache,
-    cache_connection = cache_connection,
+    cache_connection = db,
     disconnect_db = disconnect_db
   )
 
@@ -196,6 +215,12 @@ tw_search <- function(search,
 
   unique_search <- unique(search)
 
+  db <- tw_connect_to_cache(
+    connection = cache_connection,
+    language = language,
+    cache = cache
+  )
+
   if (length(unique_search) == 1) {
     search_df <-
       dplyr::left_join(
@@ -209,7 +234,8 @@ tw_search <- function(search,
           wait = wait,
           cache = cache,
           overwrite_cache = overwrite_cache,
-          cache_connection = cache_connection
+          cache_connection = db,
+          disconnect_db = disconnect_db
         ),
         by = "search"
       )
@@ -238,11 +264,18 @@ tw_search <- function(search,
               wait = wait,
               cache = cache,
               overwrite_cache = overwrite_cache,
-              cache_connection = cache_connection
+              cache_connection = db,
+              disconnect_db = FALSE
             )
           }
         ),
         by = "search"
+      )
+
+      tw_disconnect_from_cache(
+        cache = cache,
+        cache_connection = db,
+        disconnect_db = disconnect_db
       )
 
       if (include_search == TRUE) {
@@ -259,7 +292,8 @@ tw_search <- function(search,
         type = type,
         language = language,
         include_search = TRUE,
-        cache_connection = cache_connection
+        cache_connection = db,
+        disconnect_db = FALSE
       )
 
       search_not_in_cache_v <- unique_search[!is.element(unique_search, search_from_cache_df$search)]
@@ -270,6 +304,11 @@ tw_search <- function(search,
           y = search_from_cache_df,
           by = "search"
         )
+        tw_disconnect_from_cache(
+          cache = cache,
+          cache_connection = db,
+          disconnect_db = disconnect_db
+        )
         if (include_search == TRUE) {
           return(search_df)
         } else {
@@ -278,6 +317,7 @@ tw_search <- function(search,
         }
       } else if (length(search_not_in_cache_v) > 0) {
         pb <- progress::progress_bar$new(total = length(search_not_in_cache_v))
+
         items_not_in_cache_df <- purrr::map_dfr(
           .x = search_not_in_cache_v,
           .f = function(x) {
@@ -291,14 +331,15 @@ tw_search <- function(search,
               wait = wait,
               cache = cache,
               overwrite_cache = overwrite_cache,
-              cache_connection = cache_connection
+              cache_connection = db,
+              disconnect_db = FALSE
             )
           }
         )
 
         tw_disconnect_from_cache(
           cache = cache,
-          cache_connection = cache_connection,
+          cache_connection = db,
           disconnect_db = disconnect_db
         )
 
@@ -335,6 +376,7 @@ tw_search <- function(search,
 #' @param cache Defaults to NULL. If given, it should be given either TRUE or FALSE. Typically set with `tw_enable_cache()` or `tw_disable_cache()`.
 #' @param overwrite_cache Defaults to FALSE. If TRUE, overwrites cache.
 #' @param cache_connection Defaults to NULL. If NULL, and caching is enabled, `tidywikidatar` will use a local sqlite database. A custom connection to other databases can be given (see vignette `caching` for details).
+#' @param disconnect_db Defaults to TRUE. If FALSE, leaves the connection to cache open.
 #'
 #' @return A data frame (a tibble) with three columns (id, label, and description), and as many rows as there are results (by default, limited to 10).
 #' @export
@@ -348,7 +390,8 @@ tw_search_item <- function(search,
                            wait = 0,
                            cache = NULL,
                            overwrite_cache = FALSE,
-                           cache_connection = cache_connection) {
+                           cache_connection = NULL,
+                           disconnect_db = TRUE) {
   tw_search(
     search = search,
     type = "item",
@@ -357,7 +400,9 @@ tw_search_item <- function(search,
     include_search = include_search,
     wait = wait,
     cache = cache,
-    overwrite_cache = overwrite_cache
+    overwrite_cache = overwrite_cache,
+    cache_connection = cache_connection,
+    disconnect_db = disconnect_db
   )
 }
 
@@ -389,8 +434,8 @@ tw_search_property <- function(search,
                                wait = 0,
                                cache = NULL,
                                overwrite_cache = FALSE,
-                               disconnect_db = TRUE,
-                               cache_connection = NULL) {
+                               cache_connection = NULL,
+                               disconnect_db = TRUE) {
   tw_search(
     search = search,
     type = "property",
@@ -399,7 +444,8 @@ tw_search_property <- function(search,
     include_search = include_search,
     wait = wait,
     cache = cache,
-    disconnect_db = disconnect_db,
-    overwrite_cache = overwrite_cache
+    cache_connection = cache_connection,
+    overwrite_cache = overwrite_cache,
+    disconnect_db = disconnect_db
   )
 }
