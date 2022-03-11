@@ -5,6 +5,7 @@
 #' @param url A character vector with the full URL to one or more Wikipedia pages. If given, title and language can be left empty.
 #' @param title Title of a Wikipedia page or final parts of its url. If given, url can be left empty, but language must be provided.
 #' @param language Two-letter language code used to define the Wikipedia version to use. Defaults to language set with `tw_set_language()`; if not set, "en". If url given, this can be left empty.
+#' @param action Defaults to "query". Usually either "query" or "parse". In principle, any valid action value, see: "https://www.mediawiki.org/w/api.php"
 #'
 #' @return A character vector of base urls to be used with the MediaWiki API
 #' @export
@@ -15,7 +16,8 @@
 #' }
 tw_get_wikipedia_base_api_url <- function(url = NULL,
                                           title = NULL,
-                                          language = tidywikidatar::tw_get_language()) {
+                                          language = tidywikidatar::tw_get_language(),
+                                          action = "query") {
   if (is.null(url) == TRUE) {
     if (is.null(title) == TRUE) {
       usethis::ui_stop("Either url or title must be provided")
@@ -37,63 +39,25 @@ tw_get_wikipedia_base_api_url <- function(url = NULL,
     )
   }
 
-  api_url <- stringr::str_c(
-    "https://",
-    language,
-    ".wikipedia.org/w/api.php?action=query&redirects=true&format=json&titles=",
-    utils::URLencode(URL = title)
-  )
-
-  api_url
-}
-
-#' Facilitates the creation of MediaWiki API base URLs to retrieve sections of a page
-#'
-#' Mostly used internally
-#'
-#' @param url A character vector with the full URL to one or more Wikipedia pages. If given, title and language can be left empty.
-#' @param title Title of a Wikipedia page or final parts of its url. If given, url can be left empty, but language must be provided.
-#' @param language Two-letter language code used to define the Wikipedia version to use. Defaults to language set with `tw_set_language()`; if not set, "en". If url given, this can be left empty.
-#'
-#' @return A character vector of base urls to be used with the MediaWiki API
-#' @export
-#'
-#' @examples
-#' if (interactive()) {
-#'   tw_get_wikipedia_sections_api_url(title = "Margaret Mead", language = "en")
-#' }
-tw_get_wikipedia_sections_api_url <- function(url = NULL,
-                                              title = NULL,
-                                              language = tidywikidatar::tw_get_language()) {
-  if (is.null(url) == TRUE) {
-    if (is.null(title) == TRUE) {
-      usethis::ui_stop("Either url or title must be provided")
-    }
-    if (is.null(language) == TRUE) {
-      usethis::ui_stop("Either language or full url must be provided")
-    }
+  if (action == "parse") {
+    title_reference <- "&page="
   } else {
-    title <- stringr::str_extract(
-      string = url,
-      pattern = "(?<=https://[[a-z]][[a-z]].wikipedia.org/wiki/).*"
-    )
-  }
-
-  if (is.null(language) == TRUE) {
-    language <- stringr::str_extract(
-      string = url,
-      pattern = "(?<=https://)[[a-z]][[a-z]](?=.wikipedia.org/)"
-    )
+    title_reference <- "&titles="
   }
 
   api_url <- stringr::str_c(
     "https://",
     language,
-    ".wikipedia.org/w/api.php?action=parse&prop=sections&redirects=true&format=json&page=",
+    ".wikipedia.org/w/api.php?action=",
+    action,
+    "&redirects=true&format=json",
+    title_reference,
     utils::URLencode(URL = title)
   )
+
   api_url
 }
+
 
 #' Gets the Wikidata Q identifier of one or more Wikipedia pages
 #'
@@ -153,7 +117,7 @@ tw_get_wikipedia_page_qid <- function(url = NULL,
   unique_title <- unique(title)
 
   if (length(unique_title) == 0) {
-    return(NULL)
+    return(tidywikidatar::tw_empty_wikipedia_page)
   }
 
   db <- tw_connect_to_cache(
@@ -204,12 +168,14 @@ tw_get_wikipedia_page_qid <- function(url = NULL,
       tw_disconnect_from_cache(
         cache = cache,
         cache_connection = db,
-        disconnect_db = disconnect_db
+        disconnect_db = disconnect_db,
+        language = language
       )
       return(
         dplyr::left_join(
           x = tibble::tibble(title_url = title),
-          y = df,
+          y = df %>%
+            dplyr::distinct(.data$title_url, .keep_all = TRUE),
           by = "title_url"
         )
       )
@@ -223,18 +189,20 @@ tw_get_wikipedia_page_qid <- function(url = NULL,
         disconnect_db = FALSE
       )
 
-      titles_not_in_cache <- unique_title[!is.element(unique_title, titles_in_cache_df$title)]
+      titles_not_in_cache <- unique_title[!is.element(unique_title, titles_in_cache_df$title_url)]
 
       if (length(titles_not_in_cache) == 0) {
         tw_disconnect_from_cache(
           cache = cache,
           cache_connection = db,
-          disconnect_db = disconnect_db
+          disconnect_db = disconnect_db,
+          language = language
         )
         return(
           dplyr::left_join(
             x = tibble::tibble(title_url = title),
-            y = titles_in_cache_df,
+            y = titles_in_cache_df %>%
+              dplyr::distinct(.data$title_url, .keep_all = TRUE),
             by = "title_url"
           )
         )
@@ -262,14 +230,16 @@ tw_get_wikipedia_page_qid <- function(url = NULL,
         tw_disconnect_from_cache(
           cache = cache,
           cache_connection = db,
-          disconnect_db = disconnect_db
+          disconnect_db = disconnect_db,
+          language = language
         )
         dplyr::left_join(
           x = tibble::tibble(title_url = title),
           y = dplyr::bind_rows(
             titles_in_cache_df,
             titles_not_in_cache_df
-          ),
+          ) %>%
+            dplyr::distinct(.data$title_url, .keep_all = TRUE),
           by = "title_url"
         )
       }
@@ -521,6 +491,8 @@ tw_get_cached_wikipedia_page_qid <- function(title,
     return(invisible(NULL))
   }
 
+  title_url <- title
+
   db <- tw_connect_to_cache(
     connection = cache_connection,
     language = language,
@@ -547,7 +519,7 @@ tw_get_cached_wikipedia_page_qid <- function(title,
   db_result <- tryCatch(
     dplyr::tbl(src = db, table_name) %>%
       dplyr::filter(
-        .data$title_url %in% stringr::str_c(title)
+        .data$title_url %in% stringr::str_c(title_url)
       ),
     error = function(e) {
       logical(1L)

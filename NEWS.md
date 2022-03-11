@@ -55,3 +55,13 @@
 * new naming convention for local SQLite database, to reflect change that there is now one database per language
 * improve handling of connections to reduce the risk of connections remaining open, aiming at higher efficiency for integration with shiny apps
 * bug fix: fix error when Wikidata item has no label in any language
+
+# tidywikidatar 0.5.1
+
+* introduce functions to get list of sections of Wikipedia pages - `tw_get_wikipedia_page_sections()` - and then extract the links from a specific section - `tw_get_wikipedia_page_section_links()`
+* introduce convenience function to get all Wikidata items that have a given property, irrespective of the value, `tw_get_all_with_p()`
+* `tw_search()` now has separate parameters for the search language, and the language in which label and description and returned (previously, these were always in English)
+* fix `tw_get_qualifiers()` when qualifier value is of type quantity
+* keep smooth caching also when a Wikidata item has no values and no label in the current language
+* introduce additional settings in database connections for drivers that need them
+* minor bug fixes

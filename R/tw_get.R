@@ -49,9 +49,15 @@ tw_get_single <- function(id,
       language = language,
       cache = cache,
       cache_connection = db,
-      disconnect_db = disconnect_db
+      disconnect_db = FALSE
     )
     if (is.data.frame(db_result) & nrow(db_result) > 0) {
+      tw_disconnect_from_cache(
+        cache = cache,
+        cache_connection = db,
+        disconnect_db = disconnect_db,
+        language = language
+      )
       return(db_result %>%
         tibble::as_tibble())
     }
@@ -99,6 +105,17 @@ tw_get_single <- function(id,
     language = language
   )
 
+  # keep one row, otherwise nothing remains in cache, and it will query
+  # each time the script is re-run
+  if (nrow(everything_df) == 0) {
+    everything_df <- tibble::tibble(
+      id = id,
+      property = stringr::str_c("label_", language),
+      value = as.character(NA),
+      rank = as.character(NA)
+    )
+  }
+
   if (tw_check_cache(cache) == TRUE) {
     tw_write_item_to_cache(
       item_df = everything_df,
@@ -112,7 +129,8 @@ tw_get_single <- function(id,
   tw_disconnect_from_cache(
     cache = cache,
     cache_connection = db,
-    disconnect_db = disconnect_db
+    disconnect_db = disconnect_db,
+    language = language
   )
   everything_df
 }
@@ -196,7 +214,8 @@ tw_get <- function(id,
       tw_disconnect_from_cache(
         cache = cache,
         cache_connection = db,
-        disconnect_db = disconnect_db
+        disconnect_db = disconnect_db,
+        language = language
       )
       return(
         dplyr::left_join(
@@ -222,7 +241,8 @@ tw_get <- function(id,
         tw_disconnect_from_cache(
           cache = cache,
           cache_connection = db,
-          disconnect_db = disconnect_db
+          disconnect_db = disconnect_db,
+          language = language
         )
         return(
           dplyr::left_join(
@@ -254,7 +274,8 @@ tw_get <- function(id,
         tw_disconnect_from_cache(
           cache = cache,
           cache_connection = db,
-          disconnect_db = disconnect_db
+          disconnect_db = disconnect_db,
+          language = language
         )
 
         dplyr::left_join(
