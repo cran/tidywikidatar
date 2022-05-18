@@ -10,10 +10,9 @@
 #' @param wait In seconds, defaults to 0. Time to wait between queries to Wikidata. If data are cached locally, wait time is not applied. If you are running many queries systematically you may want to add some waiting time between queries.
 #'
 #' @return A data.frame (a tibble) with three columns (id, property, and value). If item not found or trouble connecting with the server, an data frame with three columns and zero rows is returned, with the warning as an attribute, which can be retrieved with `attr(output, "warning"))`
-#' @export
 #'
 #' @examples
-#' tw_get_single(
+#' tidywikidatar:::tw_get_single(
 #'   id = "Q180099",
 #'   language = "en"
 #' )
@@ -33,9 +32,11 @@ tw_get_single <- function(id,
 
   if (length(id) > 1) {
     usethis::ui_stop("`tw_get_single()` requires `id` of length 1. Consider using `tw_get()`.")
+  } else if (length(id) == 0) {
+    return(tidywikidatar::tw_empty_item)
   }
 
-  if (isTRUE(tw_check_cache(cache))) {
+  if (tw_check_cache(cache) == TRUE) {
     db <- tw_connect_to_cache(
       connection = cache_connection,
       language = language,
@@ -123,7 +124,7 @@ tw_get_single <- function(id,
       cache = cache,
       overwrite_cache = overwrite_cache,
       cache_connection = db,
-      disconnect_db = disconnect_db
+      disconnect_db = FALSE
     )
   }
   tw_disconnect_from_cache(
@@ -160,15 +161,15 @@ tw_get <- function(id,
                    cache_connection = NULL,
                    disconnect_db = TRUE,
                    wait = 0) {
-  if (length(id) == 0) {
-    usethis::ui_stop("`tw_get()` requires `id` of length 1 or more.")
-  }
-
   if (is.data.frame(id) == TRUE) {
     id <- id$id
   }
 
   unique_id <- tw_check_qid(id)
+
+  if (length(unique_id) == 0) {
+    return(tidywikidatar::tw_empty_item)
+  }
 
   db <- tw_connect_to_cache(
     connection = cache_connection,

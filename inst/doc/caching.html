@@ -190,6 +190,26 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tw_get_cache_table_name</span>(<span class="at">type =</span> <span class="st">&quot;item&quot;</span>, <span class="at">language =</span> <span class="st">&quot;en&quot;</span>)</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;tw_item_en&quot;</span></span></code></pre></div>
 </div>
+<div id="column-types-and-indexing" class="section level2">
+<h2>Column types and indexing</h2>
+<p>Due to limited familiarity with different database backends and limited time for testing, the creation of database tables is left to the default values of <code>DBI::dbWriteTable()</code>. For occasional use, this should not be an issue. However, when the local cache reaches millions rather than only thousands of rows, response time from a MySql database can take a few seconds, rather than a fraction of a second as would be expected. To deal with this, new functions for adding indexing to cache tables have been introduced, <code>tw_check_cache_index()</code>, <code>tw_index_cache_item()</code>, and <code>tw_index_cache_search()</code>. It is possible to apply this to all existing functions of a given type as outlined below. This speeds up retrieval time dramatically on MySql databases; impact on other types of databases has not been thoroughly tested.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>db <span class="ot">&lt;-</span> <span class="fu">tw_connect_to_cache</span>()</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>tables_v <span class="ot">&lt;-</span> DBI<span class="sc">::</span><span class="fu">dbListTables</span>(<span class="at">conn =</span> db)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co"># for search cache tables</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>purrr<span class="sc">::</span><span class="fu">walk</span>(<span class="at">.x =</span> tables_v[stringr<span class="sc">::</span><span class="fu">str_starts</span>(<span class="at">string =</span> tables_v, <span class="st">&quot;tw_search_item&quot;</span>)],</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">.f =</span> <span class="cf">function</span>(x) {</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>              <span class="fu">tw_index_cache_search</span>(<span class="at">table_name =</span> x)</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>            })</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="co"># for item cache tables</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>purrr<span class="sc">::</span><span class="fu">walk</span>(<span class="at">.x =</span> tables_v[stringr<span class="sc">::</span><span class="fu">str_starts</span>(<span class="at">string =</span> tables_v, <span class="st">&quot;tw_item&quot;</span>)],</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>            <span class="at">.f =</span> <span class="cf">function</span>(x) {</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>              <span class="fu">tw_index_cache_item</span>(<span class="at">table_name =</span> x)</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>            })</span></code></pre></div>
+</div>
 
 
 

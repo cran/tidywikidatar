@@ -70,11 +70,6 @@ future versions of `tidywikidatar`, but for larger batches of data
 (large number of items/many properties), well formed queries will remain
 more efficient.
 
-### Known issues
-
--   `tw_search()` always returns label and description in English (to be
-    fixed)
-
 ## Use cases and publicly available examples
 
 These articles or repository demonstrate some use cases for
@@ -321,23 +316,25 @@ tw_get_property(
   p = "P166",
   language = "en"
 ) 
-#> # A tibble: 14 × 4
-#>    id      property value     rank  
-#>    <chr>   <chr>    <chr>     <chr> 
-#>  1 Q180099 P166     Q17144    normal
-#>  2 Q180099 P166     Q782022   normal
-#>  3 Q180099 P166     Q8017107  normal
-#>  4 Q180099 P166     Q1967852  normal
-#>  5 Q180099 P166     Q52382875 normal
-#>  6 Q228822 P166     Q1967852  normal
-#>  7 Q228822 P166     Q52382875 normal
-#>  8 Q228822 P166     Q752297   normal
-#>  9 Q220480 P166     Q1316544  normal
-#> 10 Q220480 P166     Q1967852  normal
-#> 11 Q220480 P166     Q5461701  normal
-#> 12 Q220480 P166     Q5461189  normal
-#> 13 Q220480 P166     Q4765305  normal
-#> 14 Q220480 P166     Q1316544  normal
+#> # A tibble: 16 × 4
+#>    id      property value      rank  
+#>    <chr>   <chr>    <chr>      <chr> 
+#>  1 Q180099 P166     Q17144     normal
+#>  2 Q180099 P166     Q782022    normal
+#>  3 Q180099 P166     Q8017107   normal
+#>  4 Q180099 P166     Q1967852   normal
+#>  5 Q180099 P166     Q52382875  normal
+#>  6 Q180099 P166     Q110471679 normal
+#>  7 Q180099 P166     Q110939855 normal
+#>  8 Q228822 P166     Q1967852   normal
+#>  9 Q228822 P166     Q52382875  normal
+#> 10 Q228822 P166     Q752297    normal
+#> 11 Q220480 P166     Q1316544   normal
+#> 12 Q220480 P166     Q1967852   normal
+#> 13 Q220480 P166     Q5461701   normal
+#> 14 Q220480 P166     Q5461189   normal
+#> 15 Q220480 P166     Q4765305   normal
+#> 16 Q220480 P166     Q1316544   normal
 ```
 
 Again, Wikidata ids. We can of course get their relative labels using
@@ -352,7 +349,7 @@ tw_get_property(
   language = "en"
 ) %>% 
   tw_label()
-#> # A tibble: 14 × 4
+#> # A tibble: 16 × 4
 #>    id                 property       value                                 rank 
 #>    <chr>              <chr>          <chr>                                 <chr>
 #>  1 Margaret Mead      award received Presidential Medal of Freedom         norm…
@@ -360,15 +357,17 @@ tw_get_property(
 #>  3 Margaret Mead      award received William Procter Prize for Scientific… norm…
 #>  4 Margaret Mead      award received National Women's Hall of Fame         norm…
 #>  5 Margaret Mead      award received AAAS Fellow                           norm…
-#>  6 Ruth Benedict      award received National Women's Hall of Fame         norm…
-#>  7 Ruth Benedict      award received AAAS Fellow                           norm…
-#>  8 Ruth Benedict      award received Doctor of Philosophy                  norm…
-#>  9 Zora Neale Hurston award received Guggenheim Fellowship                 norm…
-#> 10 Zora Neale Hurston award received National Women's Hall of Fame         norm…
-#> 11 Zora Neale Hurston award received Florida Women's Hall of Fame          norm…
-#> 12 Zora Neale Hurston award received Florida Artists Hall of Fame          norm…
-#> 13 Zora Neale Hurston award received Anisfield-Wolf Book Awards            norm…
-#> 14 Zora Neale Hurston award received Guggenheim Fellowship                 norm…
+#>  6 Margaret Mead      award received honorary doctor of the University of… norm…
+#>  7 Margaret Mead      award received Gold Medal of the Society of Woman G… norm…
+#>  8 Ruth Benedict      award received National Women's Hall of Fame         norm…
+#>  9 Ruth Benedict      award received AAAS Fellow                           norm…
+#> 10 Ruth Benedict      award received Doctor of Philosophy                  norm…
+#> 11 Zora Neale Hurston award received Guggenheim Fellowship                 norm…
+#> 12 Zora Neale Hurston award received National Women's Hall of Fame         norm…
+#> 13 Zora Neale Hurston award received Florida Women's Hall of Fame          norm…
+#> 14 Zora Neale Hurston award received Florida Artists Hall of Fame          norm…
+#> 15 Zora Neale Hurston award received Anisfield-Wolf Book Awards            norm…
+#> 16 Zora Neale Hurston award received Guggenheim Fellowship                 norm…
 ```
 
 ## Piped operations
@@ -377,7 +376,9 @@ Using the pipe (`%>%`) when working with Wikidata is often not
 straightforward, due to the fact that a given property may have an
 unspecified number of values. `tidywikidatar` offers dedicated functions
 to work with the pipe more consistently, in particular
-`tw_get_property_same_length()` (or its shorter alias `tw_get_p()`).
+`tw_get_property_same_length()` (or its shorter alias `tw_get_p()`, or
+`tw_get_p1()` to always get a character vector with the first property
+in response).
 
 One main distinction to keep in mind in this context is that for some
 properties we really just expect to have a single value, and we are
@@ -490,31 +491,75 @@ students %>%
   select(-worked_at_id) %>% 
   separate(worked_at_coordinates, into = c("lat", "lon"), sep = ",")
 #> # A tibble: 19 × 4
-#>    student_label                 worked_at_label            lat        lon      
-#>    <chr>                         <chr>                      <chr>      <chr>    
-#>  1 Ruth Benedict                 Columbia University        40.8075    -73.9619…
-#>  2 Edward Sapir                  Yale University            41.311111… -72.9266…
-#>  3 Edward Sapir                  University of Chicago      41.789722… -87.5997…
-#>  4 Alexander Francis Chamberlain Clark University           42.250977  -71.8231…
-#>  5 Alexander Goldenweiser        Columbia University        40.8075    -73.9619…
-#>  6 Alexander Goldenweiser        University of Washington   47.654166… -122.308…
-#>  7 Melville J. Herskovits        Northwestern University    42.054853  -87.6739…
-#>  8 Melville J. Herskovits        Columbia University        40.8075    -73.9619…
-#>  9 Melville J. Herskovits        Howard University          38.921666… -77.02   
-#> 10 E. Adamson Hoebel             New York University        40.73      -73.995  
-#> 11 Melville Jacobs               University of Washington   47.654166… -122.308…
-#> 12 Alexander Lesser              Columbia University        40.8075    -73.9619…
-#> 13 Alexander Lesser              Brandeis University        42.36566   -71.25974
-#> 14 Alexander Lesser              Hofstra University         40.714605… -73.6004…
-#> 15 Margaret Mead                 Columbia University        40.8075    -73.9619…
-#> 16 Margaret Mead                 University of Rhode Island 41.4807    -71.5258 
-#> 17 Paul Radin                    University of Chicago      41.789722… -87.5997…
-#> 18 Paul Radin                    Fisk University            36.1688    -86.8047 
-#> 19 Paul Radin                    Brandeis University        42.36566   -71.25974
+#>    student_label                 worked_at_label            lat            lon  
+#>    <chr>                         <chr>                      <chr>          <chr>
+#>  1 Ruth Benedict                 Columbia University        40.8075        -73.…
+#>  2 Edward Sapir                  Yale University            41.3111111111… -72.…
+#>  3 Edward Sapir                  University of Chicago      41.7897222222… -87.…
+#>  4 Alexander Francis Chamberlain Clark University           42.250977      -71.…
+#>  5 Alexander Goldenweiser        Columbia University        40.8075        -73.…
+#>  6 Alexander Goldenweiser        University of Washington   47.6541666666… -122…
+#>  7 Melville J. Herskovits        Northwestern University    42.054853      -87.…
+#>  8 Melville J. Herskovits        Columbia University        40.8075        -73.…
+#>  9 Melville J. Herskovits        Howard University          38.9216666666… -77.…
+#> 10 E. Adamson Hoebel             New York University        40.73          -73.…
+#> 11 Melville Jacobs               University of Washington   47.6541666666… -122…
+#> 12 Alexander Lesser              Columbia University        40.8075        -73.…
+#> 13 Alexander Lesser              Brandeis University        42.36566       -71.…
+#> 14 Alexander Lesser              Hofstra University         40.7146055555… -73.…
+#> 15 Margaret Mead                 Columbia University        40.8075        -73.…
+#> 16 Margaret Mead                 University of Rhode Island 41.4807        -71.…
+#> 17 Paul Radin                    University of Chicago      41.7897222222… -87.…
+#> 18 Paul Radin                    Fisk University            36.1688        -86.…
+#> 19 Paul Radin                    Brandeis University        42.36566       -71.…
 ```
 
 Starting with version 0.5, to reduce typing, `tw_get_p()` can be used
-instead of the more verbose `tw_get_property_same_length()`.
+instead of the more verbose `tw_get_property_same_length()`. By default,
+`tw_get_p()` returns a vector of lists, as it is common for a property
+to have multiple values. If one is interested only in the first
+preferred value associated with a given property, `tw_get_p1()`, which
+consistently returns a character vector of the same length as the input,
+can be used instead.
+
+Starting with version 0.5.2, a more efficient `tw_get_p_wide()` has been
+introduced to replicate a common use pattern, i.e. getting a number of
+property of a given set of identifiers, and retrieving their labels.
+
+``` r
+tw_get_p_wide(id =  c("Q180099", "Q228822", "Q191095"), 
+              p = c("P27", "P19", "P20"),
+              only_first = TRUE,
+              preferred = TRUE,
+              label = TRUE)
+#> # A tibble: 3 × 5
+#>   id      label         P27                      P19           P20          
+#>   <chr>   <chr>         <chr>                    <chr>         <chr>        
+#> 1 Q180099 Margaret Mead United States of America Philadelphia  New York City
+#> 2 Q228822 Ruth Benedict United States of America New York City New York City
+#> 3 Q191095 Edward Sapir  United States of America Lębork        New Haven
+```
+
+It is however common for properties to have more than one meaningful
+value. By default, `tw_get_p_wide()` would get these as lists columns,
+but there is also an additional parameter to facilitate sharing the
+result, for example, as a csv file.
+
+``` r
+tw_get_p_wide(id = c("Q180099", "Q228822", "Q191095"), 
+              p = c("P108", "P26", "P451"),
+              only_first = TRUE,
+              preferred = TRUE,
+              label = TRUE,
+              unlist = TRUE,
+              collapse = ";")
+#> # A tibble: 3 × 5
+#>   id      label         P108                P26                       P451      
+#>   <chr>   <chr>         <chr>               <chr>                     <chr>     
+#> 1 Q180099 Margaret Mead Columbia University Gregory Bateson           Ruth Bene…
+#> 2 Q228822 Ruth Benedict Columbia University Stanley Rossiter Benedict Margaret …
+#> 3 Q191095 Edward Sapir  Yale University     <NA>                      <NA>
+```
 
 ## Qualifiers
 
@@ -553,20 +598,20 @@ Wikidata knows about it: each of these properties comes with qualifiers.
 ``` r
 qualifiers_df <- tw_get_qualifiers(id = "Q2391857", p = "P39")
 qualifiers_df
-#> # A tibble: 26 × 8
+#> # A tibble: 27 × 8
 #>    id    property qualifier_id qualifier_prope… qualifier_value qualifier_value…
 #>    <chr> <chr>    <chr>        <chr>            <chr>           <chr>           
-#>  1 Q239… P39      Q27169       P2937            Q17315694       wikibase-entity…
-#>  2 Q239… P39      Q27169       P580             +2014-07-01T00… time            
-#>  3 Q239… P39      Q27169       P4100            Q507343         wikibase-entity…
-#>  4 Q239… P39      Q27169       P768             Q3677909        wikibase-entity…
-#>  5 Q239… P39      Q27169       P1268            Q47729          wikibase-entity…
-#>  6 Q239… P39      Q27169       P2715            Q1376095        wikibase-entity…
-#>  7 Q239… P39      Q740126      P580             +2019-07-03T00… time            
-#>  8 Q239… P39      Q740126      P1365            Q440710         wikibase-entity…
-#>  9 Q239… P39      Q740126      P582             +2022-01-11T00… time            
-#> 10 Q239… P39      Q740126      P1534            Q5247364        wikibase-entity…
-#> # … with 16 more rows, and 2 more variables: rank <chr>, set <dbl>
+#>  1 Q239… P39      Q740126      P580             +2019-07-03T00… time            
+#>  2 Q239… P39      Q740126      P1365            Q440710         wikibase-entity…
+#>  3 Q239… P39      Q740126      P582             +2022-01-11T00… time            
+#>  4 Q239… P39      Q740126      P1534            Q5247364        wikibase-entity…
+#>  5 Q239… P39      Q740126      P1366            Q7351526        wikibase-entity…
+#>  6 Q239… P39      Q27169       P580             +2019-07-02T00… time            
+#>  7 Q239… P39      Q27169       P582             +2022-01-11T00… time            
+#>  8 Q239… P39      Q27169       P1534            Q5247364        wikibase-entity…
+#>  9 Q239… P39      Q27169       P1366            Q110513292      wikibase-entity…
+#> 10 Q239… P39      Q27169       P2937            Q64038205       wikibase-entity…
+#> # … with 17 more rows, and 2 more variables: rank <chr>, set <dbl>
 ```
 
 As usual, Wikidata presents everything as combinations of properties and
@@ -610,32 +655,33 @@ qualifiers_labelled_df %>%
 
 | who           | did           | what                                 | how                 | value                                            | set |
 |:--------------|:--------------|:-------------------------------------|:--------------------|:-------------------------------------------------|----:|
-| David Sassoli | position held | member of the European Parliament    | parliamentary term  | Eighth European Parliament                       |   1 |
-| David Sassoli | position held | member of the European Parliament    | start time          | 2014-07-01                                       |   1 |
-| David Sassoli | position held | member of the European Parliament    | parliamentary group | Progressive Alliance of Socialists and Democrats |   1 |
-| David Sassoli | position held | member of the European Parliament    | electoral district  | Central Italy                                    |   1 |
-| David Sassoli | position held | member of the European Parliament    | represents          | Democratic Party                                 |   1 |
-| David Sassoli | position held | member of the European Parliament    | elected in          | 2014 European Parliament election                |   1 |
-| David Sassoli | position held | President of the European Parliament | start time          | 2019-07-03                                       |   2 |
-| David Sassoli | position held | President of the European Parliament | replaces            | Antonio Tajani                                   |   2 |
-| David Sassoli | position held | President of the European Parliament | end time            | 2022-01-11                                       |   2 |
-| David Sassoli | position held | President of the European Parliament | end cause           | death in office                                  |   2 |
-| David Sassoli | position held | President of the European Parliament | replaced by         | Roberta Metsola Tedesco Triccas                  |   2 |
-| David Sassoli | position held | member of the European Parliament    | parliamentary term  | Seventh European Parliament                      |   3 |
-| David Sassoli | position held | member of the European Parliament    | start time          | 2009-07-14                                       |   3 |
+| David Sassoli | position held | President of the European Parliament | start time          | 2019-07-03                                       |   1 |
+| David Sassoli | position held | President of the European Parliament | replaces            | Antonio Tajani                                   |   1 |
+| David Sassoli | position held | President of the European Parliament | end time            | 2022-01-11                                       |   1 |
+| David Sassoli | position held | President of the European Parliament | end cause           | death in office                                  |   1 |
+| David Sassoli | position held | President of the European Parliament | replaced by         | Roberta Metsola                                  |   1 |
+| David Sassoli | position held | member of the European Parliament    | start time          | 2019-07-02                                       |   2 |
+| David Sassoli | position held | member of the European Parliament    | end time            | 2022-01-11                                       |   2 |
+| David Sassoli | position held | member of the European Parliament    | end cause           | death in office                                  |   2 |
+| David Sassoli | position held | member of the European Parliament    | replaced by         | Camilla Laureti                                  |   2 |
+| David Sassoli | position held | member of the European Parliament    | parliamentary term  | Ninth European Parliament                        |   2 |
+| David Sassoli | position held | member of the European Parliament    | parliamentary group | Progressive Alliance of Socialists and Democrats |   2 |
+| David Sassoli | position held | member of the European Parliament    | electoral district  | Italy                                            |   2 |
+| David Sassoli | position held | member of the European Parliament    | elected in          | 2019 European Parliament election                |   2 |
+| David Sassoli | position held | member of the European Parliament    | represents          | Democratic Party                                 |   2 |
+| David Sassoli | position held | member of the European Parliament    | start time          | 2014-07-01                                       |   3 |
+| David Sassoli | position held | member of the European Parliament    | parliamentary term  | Eighth European Parliament                       |   3 |
 | David Sassoli | position held | member of the European Parliament    | parliamentary group | Progressive Alliance of Socialists and Democrats |   3 |
 | David Sassoli | position held | member of the European Parliament    | electoral district  | Central Italy                                    |   3 |
+| David Sassoli | position held | member of the European Parliament    | elected in          | 2014 European Parliament election                |   3 |
 | David Sassoli | position held | member of the European Parliament    | represents          | Democratic Party                                 |   3 |
-| David Sassoli | position held | member of the European Parliament    | elected in          | 2009 European Parliament election                |   3 |
-| David Sassoli | position held | member of the European Parliament    | end time            | 2014-06-30                                       |   3 |
-| David Sassoli | position held | member of the European Parliament    | parliamentary term  | Ninth European Parliament                        |   4 |
-| David Sassoli | position held | member of the European Parliament    | start time          | 2019-07-02                                       |   4 |
+| David Sassoli | position held | member of the European Parliament    | start time          | 2009-07-14                                       |   4 |
+| David Sassoli | position held | member of the European Parliament    | end time            | 2014-06-30                                       |   4 |
+| David Sassoli | position held | member of the European Parliament    | parliamentary term  | Seventh European Parliament                      |   4 |
 | David Sassoli | position held | member of the European Parliament    | parliamentary group | Progressive Alliance of Socialists and Democrats |   4 |
-| David Sassoli | position held | member of the European Parliament    | electoral district  | Italy                                            |   4 |
+| David Sassoli | position held | member of the European Parliament    | electoral district  | Central Italy                                    |   4 |
+| David Sassoli | position held | member of the European Parliament    | elected in          | 2009 European Parliament election                |   4 |
 | David Sassoli | position held | member of the European Parliament    | represents          | Democratic Party                                 |   4 |
-| David Sassoli | position held | member of the European Parliament    | elected in          | 2019 European Parliament election                |   4 |
-| David Sassoli | position held | member of the European Parliament    | end time            | 2022-01-11                                       |   4 |
-| David Sassoli | position held | member of the European Parliament    | end cause           | death in office                                  |   4 |
 
 That’s quite a lot of useful detail. The construction of the request can
 be quite complicated, but keep in mind that if you do this
@@ -840,27 +886,27 @@ dataframe with all women who are resistance fighters on Wikidata.
 
 ``` r
 tw_query(query = query_df)
-#> Rows: 767 Columns: 3
+#> Rows: 809 Columns: 3
 #> ── Column specification ────────────────────────────────────────────────────────
 #> Delimiter: ","
 #> chr (3): item, itemLabel, itemDescription
 #> 
 #> ℹ Use `spec()` to retrieve the full column specification for this data.
 #> ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
-#> # A tibble: 767 × 3
-#>    id      label                  description                                   
-#>    <chr>   <chr>                  <chr>                                         
-#>  1 Q274041 Nanny of the Maroons   leader of Windward Maroons in Jamaica         
-#>  2 Q276410 Marga Klompé           Dutch politician (1912-1986)                  
-#>  3 Q283654 Maria Skobtsova        Russian saint                                 
-#>  4 Q285995 Maria Restituta Kafka  Franciscan nun and nurse; Nazi critic; victim…
-#>  5 Q304262 Hannie van Leeuwen     Dutch politician (1926-2018)                  
-#>  6 Q324718 Martha Dodd            American spy for the Soviet Union             
-#>  7 Q354512 Adele Stürzl           Austrian politician, member of the Austrian r…
-#>  8 Q394661 Agnes Wendland         <NA>                                          
-#>  9 Q441439 Henriette Roland Holst Dutch politician, editor (1869-1952)          
-#> 10 Q443262 Lozen                  Apache prophetess and warrior                 
-#> # … with 757 more rows
+#> # A tibble: 809 × 3
+#>    id       label                     description                               
+#>    <chr>    <chr>                     <chr>                                     
+#>  1 Q2918619 Hester van Lennep         <NA>                                      
+#>  2 Q2937677 Truus Menger-Oversteegen  Dutch sculptor, painter, and wartime resi…
+#>  3 Q3009723 Cécile Cerf               French resistance member (1916-1973)      
+#>  4 Q3018636 Reina Prinsen Geerligs    Dutch writer and resistance fighter (1922…
+#>  5 Q3032952 Djignabo Badji            Senegalese activist                       
+#>  6 Q3058929 Estera Heiber-Fajersztejn <NA>                                      
+#>  7 Q3061239 Eva Fastag                polish-born Holocaust survivor            
+#>  8 Q3081207 Francine Fromond          <NA>                                      
+#>  9 Q3092277 Felicie Perelman          Polish writer                             
+#> 10 Q3104187 Germaine Guérin Dirique   <NA>                                      
+#> # … with 799 more rows
 ```
 
 Or perhaps, you are interested only in women who are resistance fighters
@@ -878,27 +924,27 @@ tibble::tribble(
   "P27", "Q142"
 ) %>% # Country of citizenship: France
   tw_query(language = c("it", "fr"))
-#> Rows: 127 Columns: 3
+#> Rows: 134 Columns: 3
 #> ── Column specification ────────────────────────────────────────────────────────
 #> Delimiter: ","
 #> chr (3): item, itemLabel, itemDescription
 #> 
 #> ℹ Use `spec()` to retrieve the full column specification for this data.
 #> ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
-#> # A tibble: 127 × 3
-#>    id        label                           description                        
-#>    <chr>     <chr>                           <chr>                              
-#>  1 Q270319   Christiane Desroches Noblecourt egittologa e archeologa francese   
-#>  2 Q6837011  Michelle Dubois                 <NA>                               
-#>  3 Q10289954 Giselle Cossard                 résistante française, femme de let…
-#>  4 Q5257705  Denise Laroque                  <NA>                               
-#>  5 Q15970412 Raymonde Tillon                 femme politique française          
-#>  6 Q16262713 Simone Schloss                  résistante communiste française    
-#>  7 Q2696536  Yolande Beekman                 espionne et agente secret des Spec…
-#>  8 Q3009723  Cécile Cerf                     résistante française               
-#>  9 Q3081207  Francine Fromond                <NA>                               
-#> 10 Q3132483  Henriette Moriamé               <NA>                               
-#> # … with 117 more rows
+#> # A tibble: 134 × 3
+#>    id         label                 description                                 
+#>    <chr>      <chr>                 <chr>                                       
+#>  1 Q2696536   Yolande Beekman       espionne et agente secret des Special Opera…
+#>  2 Q3009723   Cécile Cerf           résistante française                        
+#>  3 Q3081207   Francine Fromond      <NA>                                        
+#>  4 Q3132483   Henriette Moriamé     <NA>                                        
+#>  5 Q18121470  Antoinette d'Harcourt poétesse et résistante française            
+#>  6 Q19300907  Lucette Pla-Justafré  enseignante et personnalité politique franç…
+#>  7 Q19606396  Anise Postel-Vinay    résistante française                        
+#>  8 Q19631204  Cécile Rol-Tanguy     résistante française                        
+#>  9 Q109251934 Jeanne Bleton-Barraud résistante française                        
+#> 10 Q109252587 Louise Losserand      résistante et déportée française            
+#> # … with 124 more rows
 ```
 
 You can also ask other fields, beyond label and description, using the
@@ -917,7 +963,7 @@ tibble::tribble(
   tw_query() %>%
   dplyr::slice(1) %>%
   get_bio()
-#> Rows: 127 Columns: 3
+#> Rows: 134 Columns: 3
 #> ── Column specification ────────────────────────────────────────────────────────
 #> Delimiter: ","
 #> chr (3): item, itemLabel, itemDescription
@@ -925,9 +971,9 @@ tibble::tribble(
 #> ℹ Use `spec()` to retrieve the full column specification for this data.
 #> ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 #> # A tibble: 1 × 4
-#>   label                           description        year_of_birth year_of_death
-#>   <chr>                           <chr>                      <dbl>         <dbl>
-#> 1 Christiane Desroches Noblecourt French egyptologi…          1913          2011
+#>   label         description year_of_birth year_of_death
+#>   <chr>         <chr>               <dbl>         <dbl>
+#> 1 Simone Lurçat <NA>                 1915          2009
 ```
 
 Keep in mind that Wikidata queries are not cached locally.
@@ -981,20 +1027,20 @@ wikipedia_df <- tw_get_wikipedia(id = "Q180099") %>%
   tw_get_wikipedia_page_links()
 
 wikipedia_df
-#> # A tibble: 893 × 8
-#>    source_title_url source_wikipedia… source_qid wikipedia_title    wikipedia_id
-#>    <chr>            <chr>             <chr>      <chr>                     <int>
-#>  1 Margaret Mead    Margaret Mead     Q180099    Alex Barker                  NA
-#>  2 Margaret Mead    Margaret Mead     Q180099    Alfred S. Hayes              NA
-#>  3 Margaret Mead    Margaret Mead     Q180099    Blackberry Winter…           NA
-#>  4 Margaret Mead    Margaret Mead     Q180099    Continuities in C…           NA
-#>  5 Margaret Mead    Margaret Mead     Q180099    Culture and Commi…           NA
-#>  6 Margaret Mead    Margaret Mead     Q180099    John P. Gillin               NA
-#>  7 Margaret Mead    Margaret Mead     Q180099    A Darwinian Left        3890352
-#>  8 Margaret Mead    Margaret Mead     Q180099    A Rap on Race          14527943
-#>  9 Margaret Mead    Margaret Mead     Q180099    Abby Kelley             4056835
-#> 10 Margaret Mead    Margaret Mead     Q180099    Abigail Adams            102745
-#> # … with 883 more rows, and 3 more variables: qid <chr>, description <chr>,
+#> # A tibble: 793 × 8
+#>    source_title_url source_wikipedia_ti… source_qid wikipedia_title wikipedia_id
+#>    <chr>            <chr>                <chr>      <chr>                  <int>
+#>  1 Margaret Mead    Margaret Mead        Q180099    Alex Barker               NA
+#>  2 Margaret Mead    Margaret Mead        Q180099    Alfred S. Hayes           NA
+#>  3 Margaret Mead    Margaret Mead        Q180099    Blackberry Win…           NA
+#>  4 Margaret Mead    Margaret Mead        Q180099    Continuities i…           NA
+#>  5 Margaret Mead    Margaret Mead        Q180099    Culture and Co…           NA
+#>  6 Margaret Mead    Margaret Mead        Q180099    John P. Gillin            NA
+#>  7 Margaret Mead    Margaret Mead        Q180099    Martin Orans              NA
+#>  8 Margaret Mead    Margaret Mead        Q180099    A Darwinian Le…      3890352
+#>  9 Margaret Mead    Margaret Mead        Q180099    A Rap on Race       14527943
+#> 10 Margaret Mead    Margaret Mead        Q180099    Abby Kelley          4056835
+#> # … with 783 more rows, and 3 more variables: qid <chr>, description <chr>,
 #> #   language <chr>
 ```
 
@@ -1060,7 +1106,7 @@ tw_get_image_metadata(id = "Q180099") %>%
 #>  2 image_filename             "Margaret Mead (1901-1978).jpg"                   
 #>  3 object_name                "Margaret Mead (1901-1978)"                       
 #>  4 image_description          "<b>Subject</b>: Mead, Margaret\n<p>       Intern…
-#>  5 categories                 "Black and white photographs of female heads|Blac…
+#>  5 categories                 "!Mais Teoria da História na Wiki (Mulheres)|Blac…
 #>  6 assessments                ""                                                
 #>  7 credit                     "<p><a rel=\"nofollow\" class=\"external text\" h…
 #>  8 artist                     "<a rel=\"nofollow\" class=\"external text\" href…
@@ -1069,8 +1115,8 @@ tw_get_image_metadata(id = "Q180099") %>%
 #> 11 license_url                "https://www.flickr.com/commons/usage/"           
 #> 12 license                     <NA>                                             
 #> 13 usage_terms                "No known copyright restrictions"                 
-#> 14 attribution_required       "0"                                               
-#> 15 copyrighted                "1"                                               
+#> 14 attribution_required       "FALSE"                                           
+#> 15 copyrighted                "TRUE"                                            
 #> 16 restrictions               ""                                                
 #> 17 date_time                  "2019-07-02 03:33:00"                             
 #> 18 date_time_original         "18 July 2011, 16:02"                             

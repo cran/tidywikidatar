@@ -67,6 +67,26 @@ tw_get_property <- function(id,
       wait = wait,
       disconnect_db = disconnect_db
     )
+  } else {
+    id_df <- id_df %>%
+      dplyr::filter(.data$id %in% unique_id)
+
+    missing_id_v <- unique_id[!unique_id %in% id_df$id]
+
+    if (length(missing_id_v) > 0) {
+      id_df <- dplyr::bind_rows(
+        id_df,
+        tw_get(
+          id = missing_id_v,
+          cache = cache,
+          overwrite_cache = overwrite_cache,
+          cache_connection = cache_connection,
+          language = language,
+          wait = wait,
+          disconnect_db = disconnect_db
+        )
+      )
+    }
   }
 
   property_df <- id_df %>%
@@ -77,7 +97,7 @@ tw_get_property <- function(id,
     if (length(p) > 1) {
       property_df <- tibble::tibble(property = p) %>%
         dplyr::left_join(y = property_df, by = "property") %>%
-        dplyr::select(.data$id, .data$property, .data$value)
+        dplyr::select(.data$id, .data$property, .data$value, .data$rank)
     }
     if (length(id) > 1) {
       property_df <- tibble::tibble(id = id) %>%
@@ -92,7 +112,7 @@ tw_get_property <- function(id,
 }
 
 
-#' Get Wikidata property of an item as a character vector of the same length as input
+#' Get Wikidata property of an item as a vector or list of the same length as input
 #'
 #' @param id A character vector, must start with Q, e.g. "Q254" for Wolfgang Amadeus Mozart.
 #' @param p A character vector, a property. Must always start with the capital letter "P", e.g. "P31" for "instance of".
@@ -100,7 +120,7 @@ tw_get_property <- function(id,
 #' @param preferred Logical, defaults to FALSE. If TRUE, returns properties that have rank "preferred" if available; if no "preferred" property is found, then it is ignored.
 #' @param latest_start_time Logical, defaults to FALSE. If TRUE, returns the property that has the most recent start time ("P580") as qualifier. If no such qualifier is found, then it is ignored.
 #' @param language Defaults to language set with `tw_set_language()`; if not set, "en". Use "all_available" to keep all languages. For available language values, see https://www.wikidata.org/wiki/Help:Wikimedia_language_codes/lists/all
-#' @param id_df Default to NULL. If given, it should be a dataframe typically generated with `tw_get_()`, and is used instead of calling Wikidata or using SQLite cache. Ignored when `id` is of length more than one.
+#' @param id_df Default to NULL. If given, it should be a dataframe typically generated with `tw_get_()`, and is used instead of calling Wikidata or replying on cache.
 #' @param cache Defaults to NULL. If given, it should be given either TRUE or FALSE. Typically set with `tw_enable_cache()` or `tw_disable_cache()`.
 #' @param overwrite_cache Logical, defaults to FALSE. If TRUE, it overwrites the table in the local sqlite database. Useful if the original Wikidata object has been updated.
 #' @param cache_connection Defaults to NULL. If NULL, and caching is enabled, `tidywikidatar` will use a local sqlite database. A custom connection to other databases can be given (see vignette `caching` for details).
@@ -193,28 +213,20 @@ tw_get_property_same_length <- function(id,
   )
 
   if (is.null(property_df)) {
-    if (disconnect_db == TRUE) {
-      if (isTRUE(tw_check_cache(cache))) {
-        tw_disconnect_from_cache(
-          cache = TRUE,
-          cache_connection = db,
-          disconnect_db = disconnect_db,
-          language = language
-        )
-      }
-    }
+    tw_disconnect_from_cache(
+      cache = cache,
+      cache_connection = db,
+      disconnect_db = disconnect_db,
+      language = language
+    )
     return(rep(as.character(NA), length(id)))
   } else if (nrow(property_df) == 0) {
-    if (disconnect_db == TRUE) {
-      if (isTRUE(tw_check_cache(cache))) {
-        tw_disconnect_from_cache(
-          cache = TRUE,
-          cache_connection = db,
-          disconnect_db = disconnect_db,
-          language = language
-        )
-      }
-    }
+    tw_disconnect_from_cache(
+      cache = cache,
+      cache_connection = db,
+      disconnect_db = disconnect_db,
+      language = language
+    )
     if (only_first == TRUE) {
       return(rep(as.character(NA), length(id)))
     } else {
@@ -225,7 +237,7 @@ tw_get_property_same_length <- function(id,
 
 
 
-  if (isTRUE(preferred)) {
+  if (preferred == TRUE) {
     preferred_df <- property_df %>%
       dplyr::mutate(rank = factor(rank,
         levels = c(
@@ -243,7 +255,7 @@ tw_get_property_same_length <- function(id,
     }
   }
 
-  if (isTRUE(latest_start_time)) {
+  if (latest_start_time == TRUE) {
     qualifiers_df <- tw_get_qualifiers(
       id = id,
       p = p,
@@ -318,7 +330,7 @@ tw_get_property_same_length <- function(id,
 
 
   tw_disconnect_from_cache(
-    cache = TRUE,
+    cache = cache,
     cache_connection = db,
     disconnect_db = disconnect_db,
     language = language
@@ -333,3 +345,41 @@ tw_get_property_same_length <- function(id,
 #' @examples tw_get_p(id = "Q180099", "P26")
 #' @export
 tw_get_p <- tw_get_property_same_length
+
+
+#' Get Wikidata property of an item as a character vector of the same length as input
+#'
+#' This function wraps `tw_get_p()`, but always sets `only_first` and `preferred` to TRUE in order to give back always a character vector.
+#'
+#' @inheritParams tw_get_property_same_length
+#'
+#' @return A character vector of the same length as the input.
+#' @export
+#'
+#' @examples
+#' tw_get_p1(id = "Q180099", "P26")
+tw_get_p1 <- function(id,
+                      p,
+                      latest_start_time = FALSE,
+                      language = tidywikidatar::tw_get_language(),
+                      id_df = NULL,
+                      cache = NULL,
+                      overwrite_cache = FALSE,
+                      cache_connection = NULL,
+                      disconnect_db = TRUE,
+                      wait = 0) {
+  tw_get_property_same_length(
+    id = id,
+    p = p,
+    only_first = TRUE,
+    preferred = TRUE,
+    latest_start_time = latest_start_time,
+    language = language,
+    id_df = id_df,
+    cache = cache,
+    overwrite_cache = overwrite_cache,
+    cache_connection = cache_connection,
+    disconnect_db = disconnect_db,
+    wait = wait
+  )
+}

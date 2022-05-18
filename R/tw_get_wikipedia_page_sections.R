@@ -77,7 +77,7 @@ tw_get_wikipedia_page_sections <- function(url = NULL,
 
   if (disconnect_db == TRUE) {
     tw_disconnect_from_cache(
-      cache = TRUE,
+      cache = cache,
       cache_connection = db,
       disconnect_db = disconnect_db,
       language = language
@@ -102,7 +102,6 @@ tw_get_wikipedia_page_sections <- function(url = NULL,
 #' @param wikipedia_page_qid_df Defaults to NULL. If given, used to reduce calls to cache. A data frame
 #'
 #' @return A data frame (a tibble) with four columns: `wikipedia_title`, `wikipedia_id`, `wikidata_id`, `wikidata_description`.
-#' @export
 #'
 #' @examples
 #' if (interactive()) {
@@ -276,7 +275,7 @@ tw_get_cached_wikipedia_page_sections <- function(title,
   if (pool::dbExistsTable(conn = db, name = table_name) == FALSE) {
     if (disconnect_db == TRUE) {
       tw_disconnect_from_cache(
-        cache = TRUE,
+        cache = cache,
         cache_connection = db,
         disconnect_db = disconnect_db,
         language = language
@@ -299,7 +298,7 @@ tw_get_cached_wikipedia_page_sections <- function(title,
   if (isFALSE(db_result)) {
     if (disconnect_db == TRUE) {
       tw_disconnect_from_cache(
-        cache = TRUE,
+        cache = cache,
         cache_connection = db,
         disconnect_db = disconnect_db,
         language = language

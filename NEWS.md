@@ -65,3 +65,20 @@
 * keep smooth caching also when a Wikidata item has no values and no label in the current language
 * introduce additional settings in database connections for drivers that need them
 * minor bug fixes
+
+# tidywikidatar 0.5.2
+
+* new feature: `tw_get_p_wide()` offers a more efficient way to get wide data frames with a number of properties (with relative labels) for a set of Wikidata id; it also facilitates collapsing values for ease of export to csv.
+* new: introduce `tw_get_p1()` as a shorthand for `tw_get_p(only_first = TRUE, preferred = TRUE)`
+* new: when pre-cached data is given to functions such as `tw_get_property()` or `tw_get_label()`, it looks for missing data if not all are present in given data frame
+* new: introduce cache indexing convenience functions, `tw_index_cache_item()` and `tw_index_cache_search()`. These should be significantly improved performance on the caching backend, but these are currently introduced as an opt-in as they have not been thoroughly tested with different database drivers. Running them once drastically improve performance with MySql when the cache goes into million of items. See also the vignette on caching.
+* fix: don't look for cache folder when cache disabled in `tw_get_p()`
+* fix: better handling of cases when NA (including, a vector with only NA), or NULL, are given as input to various functions
+* fix: when only a partial pre-cached data frame is passed to `tw_get()` and other functions as input, missing items are queried
+* fix: `tw_get_wikipedia()` consistently returns vector of the same length as input
+* fix: `rank` column mistakenly dropped in some cases when using `tw_get_property()`
+* fix: when caching language is set manually via parameter (instead of via environment variable), a separate SQLite database is used, as expected
+* new: `tw_check_qid()` has more parameters to deal with different use cases
+* new: new set of functions to add index to databases to improve performance when the local cache grows to many millions rows (`tw_check_cache_index()`, `tw_index_cache_item()`, and `tw_index_cache_search()`). Tested with MySql.
+* all `_single` functions used internally are now not exported to facilitate auto-complete
+* new maintainer email address due to CRAN issues

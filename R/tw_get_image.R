@@ -435,7 +435,6 @@ tw_get_image_metadata <- function(id,
 #' @param attempts Defaults to 5. Number of times it re-attempts to reach the API before failing.
 #'
 #' @return A character vector, corresponding to reference to the image in the requested format.
-#' @export
 #'
 #' @examples
 #' if (interactive()) {
@@ -710,7 +709,10 @@ tw_get_image_metadata_single <- function(id,
   )
 
   if (tw_check_cache(cache) == TRUE) {
-    table_name <- tw_get_cache_table_name(type = "image_metadata", language = language)
+    table_name <- tw_get_cache_table_name(
+      type = "image_metadata",
+      language = language
+    )
 
     if (pool::dbExistsTable(conn = db, name = table_name) == FALSE) {
       # do nothing: if table does not exist, previous data cannot be there
@@ -732,13 +734,6 @@ tw_get_image_metadata_single <- function(id,
       name = table_name,
       value = image_metadata,
       append = TRUE
-    )
-
-    tw_disconnect_from_cache(
-      cache = cache,
-      cache_connection = db,
-      disconnect_db = disconnect_db,
-      language = language
     )
   }
   tw_disconnect_from_cache(

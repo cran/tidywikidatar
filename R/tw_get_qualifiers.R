@@ -12,10 +12,9 @@
 #' @param wait In seconds, defaults to 0. Time to wait between queries to Wikidata. If data are cached locally, wait time is not applied. If you are running many queries systematically you may want to add some waiting time between queries.
 #'
 #' @return A data frame (a tibble) with eight columns: `id` for the input id, `property`,  `qualifier_id`, `qualifier_property`, `qualifier_value`, `rank`, `qualifier_value_type`, and `set` (to distinguish sets of data when a property is present more than once)
-#' @export
 #'
 #' @examples
-#' tw_get_qualifiers_single(id = "Q180099", p = "P26", language = "en")
+#' tidywikidatar:::tw_get_qualifiers_single(id = "Q180099", p = "P26", language = "en")
 tw_get_qualifiers_single <- function(id,
                                      p,
                                      language = tidywikidatar::tw_get_language(),
@@ -368,7 +367,10 @@ tw_write_qualifiers_to_cache <- function(qualifiers_df,
     cache = cache
   )
 
-  table_name <- tw_get_cache_table_name(type = "qualifiers", language = language)
+  table_name <- tw_get_cache_table_name(
+    type = "qualifiers",
+    language = language
+  )
 
   if (pool::dbExistsTable(conn = db, name = table_name) == FALSE) {
     # do nothing: if table does not exist, previous data cannot be there
@@ -448,7 +450,7 @@ tw_reset_qualifiers_cache <- function(language = tidywikidatar::tw_get_language(
   }
 
   tw_disconnect_from_cache(
-    cache = TRUE,
+    cache = cache,
     cache_connection = db,
     disconnect_db = disconnect_db,
     language = language
