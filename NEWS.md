@@ -82,3 +82,9 @@
 * new: new set of functions to add index to databases to improve performance when the local cache grows to many millions rows (`tw_check_cache_index()`, `tw_index_cache_item()`, and `tw_index_cache_search()`). Tested with MySql.
 * all `_single` functions used internally are now not exported to facilitate auto-complete
 * new maintainer email address due to CRAN issues
+
+# tidywikidatar 0.5.3
+
+* new feature: get identifiers of pages that are members of a category on Wikipedia with `tw_get_wikipedia_category_members()`
+* fix: return a data frame of a single row filled with `NA` values when `tw_get_qualifiers()` would return no information on a given item/property combination; this ensures caching works as expected also in such cases.
+* fix: error in caching functions apparently due to `dbplyr` update/incompatibility with the `pool` package

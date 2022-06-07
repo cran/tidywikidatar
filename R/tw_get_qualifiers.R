@@ -62,6 +62,21 @@ tw_get_qualifiers_single <- function(id,
     qualifiers_df <- tw_extract_qualifier(id = id, p = p, w = w)
   }
 
+  if (nrow(qualifiers_df) == 0) {
+    # keep one row, otherwise nothing remains in cache, and it will query
+    # each time the script is re-run
+    qualifiers_df <- tibble::tibble(
+      id = as.character(id),
+      property = as.character(p),
+      qualifier_id = as.character(NA),
+      qualifier_property = as.character(NA),
+      qualifier_value = as.character(NA),
+      qualifier_value_type = as.character(NA),
+      rank = as.character(NA),
+      set = as.numeric(NA)
+    )
+  }
+
   if (tw_check_cache(cache) == TRUE) {
     tw_write_qualifiers_to_cache(
       qualifiers_df = qualifiers_df,
@@ -290,8 +305,8 @@ tw_get_cached_qualifiers <- function(id,
   db_result <- tryCatch(
     dplyr::tbl(src = db, table_name) %>%
       dplyr::filter(
-        .data$id %in% stringr::str_to_upper(id),
-        .data$property %in% stringr::str_to_upper(p)
+        .data$id %in% !!stringr::str_to_upper(id),
+        .data$property %in% !!stringr::str_to_upper(p)
       ),
     error = function(e) {
       logical(1L)
