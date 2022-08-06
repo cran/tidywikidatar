@@ -8,7 +8,7 @@
 #' @param cache_connection Defaults to NULL. If NULL, and caching is enabled, `tidywikidatar` will use a local sqlite database. A custom connection to other databases can be given (see vignette `caching` for details).
 #' @param disconnect_db Defaults to TRUE. If FALSE, leaves the connection to cache open.
 #' @param wait In seconds, defaults to 1 due to time-outs with frequent queries. Time to wait between queries to the APIs. If data are cached locally, wait time is not applied. If you are running many queries systematically you may want to add some waiting time between queries.
-#' @param attempts Defaults to 5. Number of times it re-attempts to reach the API before failing.
+#' @param attempts Defaults to 10. Number of times it re-attempts to reach the API before failing.
 #'
 #' @return A data frame (a tibble) with eight columns: `source_title_url`, `source_wikipedia_title`, `source_qid`, `wikipedia_title`, `wikipedia_id`, `qid`, `description`, and `language`.
 #' @export
@@ -25,7 +25,7 @@ tw_get_wikipedia_page_links <- function(url = NULL,
                                         cache_connection = NULL,
                                         disconnect_db = TRUE,
                                         wait = 1,
-                                        attempts = 5) {
+                                        attempts = 10) {
   db <- tw_connect_to_cache(
     connection = cache_connection,
     language = language,
@@ -52,11 +52,46 @@ tw_get_wikipedia_page_links <- function(url = NULL,
       source_qid = .data$qid,
       language = .data$language
     ) %>%
-    dplyr::distinct(.data$source_qid, .keep_all = TRUE)
+    dplyr::distinct(.data$source_title_url, .keep_all = TRUE)
 
-  wikipedia_page_links_df <- purrr::map_dfr(
-    .x = seq_along(source_df$source_wikipedia_title),
+  if (tw_check_cache(cache) == TRUE & overwrite_cache == FALSE) {
+    db_result <- tw_get_cached_wikipedia_page_links(
+      title = title,
+      language = language,
+      cache = cache,
+      cache_connection = db,
+      disconnect_db = FALSE
+    )
+    if (is.data.frame(db_result) & nrow(db_result) > 0) {
+      previously_cached_df <- db_result %>%
+        dplyr::collect()
+      unique_title <- unique(title)
+      titles_not_in_cache <- unique_title[!is.element(unique_title, previously_cached_df$source_title_url)]
+
+      if (length(titles_not_in_cache) == 0) {
+        tw_disconnect_from_cache(
+          cache = cache,
+          cache_connection = db,
+          disconnect_db = disconnect_db,
+          language = language
+        )
+        return(previously_cached_df)
+      }
+      source_df <- source_df %>%
+        dplyr::filter(.data$source_title_url %in% titles_not_in_cache)
+    } else {
+      previously_cached_df <- tidywikidatar::tw_empty_wikipedia_page_links
+    }
+  } else {
+    previously_cached_df <- tidywikidatar::tw_empty_wikipedia_page_links
+  }
+
+  pb <- progress::progress_bar$new(total = nrow(source_df))
+  wikipedia_page_links_new_df <- purrr::map_dfr(
+    .x = seq_along(source_df$source_title_url),
     .f = function(i) {
+      pb$tick()
+
       current_slice_df <- source_df %>%
         dplyr::slice(i)
 
@@ -70,7 +105,12 @@ tw_get_wikipedia_page_links <- function(url = NULL,
         disconnect_db = FALSE,
         wait = wait,
         attempts = attempts,
-        wikipedia_page_qid_df = wikipedia_page_qid_df
+        wikipedia_page_qid_df = current_slice_df %>%
+          dplyr::transmute(title_url = .data$source_title_url) %>%
+          dplyr::left_join(
+            y = wikipedia_page_qid_df,
+            by = "title_url"
+          )
       )
 
       linked_df
@@ -84,7 +124,15 @@ tw_get_wikipedia_page_links <- function(url = NULL,
     language = language
   )
 
-  wikipedia_page_links_df
+  wikipedia_page_qid_df %>%
+    dplyr::distinct(.data$title_url) %>%
+    dplyr::rename(source_title_url = .data$title_url) %>%
+    dplyr::left_join(dplyr::bind_rows(
+      previously_cached_df,
+      wikipedia_page_links_new_df
+    ),
+    by = "source_title_url"
+    )
 }
 
 
@@ -98,7 +146,7 @@ tw_get_wikipedia_page_links <- function(url = NULL,
 #' @param cache_connection Defaults to NULL. If NULL, and caching is enabled, `tidywikidatar` will use a local sqlite database. A custom connection to other databases can be given (see vignette `caching` for details).
 #' @param disconnect_db Defaults to TRUE. If FALSE, leaves the connection to cache open.
 #' @param wait In seconds, defaults to 1 due to time-outs with frequent queries. Time to wait between queries to the APIs. If data are cached locally, wait time is not applied. If you are running many queries systematically you may want to add some waiting time between queries.
-#' @param attempts Defaults to 5. Number of times it re-attempts to reach the API before failing.
+#' @param attempts Defaults to 10. Number of times it re-attempts to reach the API before failing.
 #' @param wikipedia_page_qid_df Defaults to NULL. If given, used to reduce calls to cache. A data frame
 #'
 #' @return A data frame (a tibble) with four columns: `wikipedia_title`, `wikipedia_id`, `wikidata_id`, `wikidata_description`.
@@ -115,7 +163,7 @@ tw_get_wikipedia_page_links_single <- function(url = NULL,
                                                cache_connection = NULL,
                                                disconnect_db = TRUE,
                                                wait = 1,
-                                               attempts = 5,
+                                               attempts = 10,
                                                wikipedia_page_qid_df = NULL) {
   db <- tw_connect_to_cache(
     connection = cache_connection,
@@ -172,7 +220,51 @@ tw_get_wikipedia_page_links_single <- function(url = NULL,
   if (isFALSE(api_result)) {
     usethis::ui_stop("It has not been possible to reach the API with {attempts} attempts. Consider increasing the waiting time between calls with the {usethis::ui_code('wait')} parameter or check your internet connection.")
   } else if (length(api_result) == 1) {
-    usethis::ui_stop("Page not found. Make sure that language parameter is consistent with the language of the input title or url.")
+    if (is.null(wikipedia_page_qid_df)) {
+      wikipedia_page_qid_df <- tw_get_wikipedia_page_qid(
+        title = title,
+        language = language,
+        url = url,
+        cache = cache,
+        overwrite_cache = overwrite_cache,
+        cache_connection = cache_connection,
+        disconnect_db = FALSE,
+        wait = wait,
+        attempts = attempts
+      )
+    }
+
+
+    output_linked_df <- wikipedia_page_qid_df %>%
+      dplyr::transmute(
+        source_title_url = .data$title_url,
+        source_wikipedia_title = .data$wikipedia_title,
+        source_qid = .data$qid,
+        wikipedia_title = as.character(NA),
+        wikipedia_id = as.numeric(NA),
+        qid = as.character(NA),
+        description = as.character(NA),
+        language = as.character(wikipedia_page_qid_df$language),
+      )
+
+    if (tw_check_cache(cache) == TRUE) {
+      tw_write_wikipedia_page_links_to_cache(
+        df = output_linked_df,
+        cache_connection = db,
+        language = language,
+        overwrite_cache = overwrite_cache,
+        disconnect_db = disconnect_db
+      )
+    }
+
+    tw_disconnect_from_cache(
+      cache = cache,
+      cache_connection = db,
+      disconnect_db = disconnect_db,
+      language = language
+    )
+
+    return(output_linked_df)
   } else {
     base_json <- api_result
   }
@@ -195,7 +287,7 @@ tw_get_wikipedia_page_links_single <- function(url = NULL,
     json_url <- stringr::str_c(
       json_url,
       "&gplcontinue=",
-      continue_check
+      utils::URLencode(URL = continue_check, reserved = TRUE)
     )
 
     api_result <- FALSE
@@ -295,7 +387,7 @@ tw_get_wikipedia_page_links_single <- function(url = NULL,
         source_wikipedia_title = .data$wikipedia_title,
         source_qid = .data$qid
       ) %>%
-      dplyr::distinct(.data$source_qid, .keep_all = TRUE),
+      dplyr::distinct(.data$source_title_url, .keep_all = TRUE),
     linked_df
   )
 

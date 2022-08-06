@@ -31,6 +31,15 @@ tw_get_wikipedia_base_api_url <- function(url = NULL,
       usethis::ui_stop("Either language or full url must be provided")
     }
   } else {
+    check_url_lv <- stringr::str_starts(string = url, pattern = "http", negate = TRUE)
+    if (sum(is.na(check_url_lv)) > 0) {
+      url <- url[is.na(check_url_lv) == FALSE]
+      usethis::ui_warn("One or more of the given URLs is actually NA. Only valid URLs will be processed.")
+    }
+    check_url_lv <- stringr::str_starts(string = url, pattern = "http", negate = TRUE)
+    if (sum(check_url_lv) != length(check_url_lv)) {
+      usethis::ui_stop(x = "One or more of the Wikipedia URL provided does not start with `http` as expected for a URL. If you are actually providing Wikipedia page titles, leave the `url` parameter to NULL, and use the `title` parameter instead.")
+    }
     title <- stringr::str_extract(
       string = url,
       pattern = "(?<=https://[[a-z]][[a-z]].wikipedia.org/wiki/).*"
@@ -58,7 +67,7 @@ tw_get_wikipedia_base_api_url <- function(url = NULL,
       action,
       "&redirects=true&format=json",
       title_reference,
-      utils::URLencode(URL = title)
+      utils::URLencode(URL = title, reserved = TRUE)
     )
   } else if (type == "category") {
     title_reference <- "&cmtitle="
@@ -70,7 +79,7 @@ tw_get_wikipedia_base_api_url <- function(url = NULL,
       action,
       "&redirects=true&format=json",
       title_reference,
-      utils::URLencode(URL = title),
+      utils::URLencode(URL = title, reserved = TRUE),
       "&list=categorymembers"
     )
   }
@@ -89,7 +98,7 @@ tw_get_wikipedia_base_api_url <- function(url = NULL,
 #' @param cache_connection Defaults to NULL. If NULL, and caching is enabled, `tidywikidatar` will use a local sqlite database. A custom connection to other databases can be given (see vignette `caching` for details).
 #' @param disconnect_db Defaults to TRUE. If FALSE, leaves the connection to cache open.
 #' @param wait In seconds, defaults to 1 due to time-outs with frequent queries. Time to wait between queries to the APIs. If data are cached locally, wait time is not applied. If you are running many queries systematically you may want to add some waiting time between queries.
-#' @param attempts Defaults to 5. Number of times it re-attempts to reach the API before failing.
+#' @param attempts Defaults to 10. Number of times it re-attempts to reach the API before failing.
 #'
 #' @return A a data frame with six columns, including `qid` with Wikidata identifiers, and a logical `disambiguation` to flag when disambiguation pages are returned.
 #' @export
@@ -109,7 +118,7 @@ tw_get_wikipedia_page_qid <- function(url = NULL,
                                       cache_connection = NULL,
                                       disconnect_db = TRUE,
                                       wait = 1,
-                                      attempts = 5) {
+                                      attempts = 10) {
   if (is.null(url) == FALSE) {
     if (is.null(title)) {
       title <- stringr::str_extract(
@@ -129,7 +138,7 @@ tw_get_wikipedia_page_qid <- function(url = NULL,
   unique_language <- unique(language)
 
   if (length(unique_language) == 0) {
-    return(NULL)
+    return(tidywikidatar::tw_empty_wikipedia_page)
   } else if (length(unique_language) > 1) {
     usethis::ui_stop(x = "{usethis::ui_code('tw_get_wikipedia_page_qid()')} currently accepts only inputs with one language at a time.")
   }
@@ -142,7 +151,7 @@ tw_get_wikipedia_page_qid <- function(url = NULL,
 
   db <- tw_connect_to_cache(
     connection = cache_connection,
-    language = language,
+    language = unique_language,
     cache = cache
   )
 
@@ -153,7 +162,7 @@ tw_get_wikipedia_page_qid <- function(url = NULL,
         y = tw_get_wikipedia_page_qid_single(
           url = NULL,
           title = unique_title,
-          language = language,
+          language = unique_language,
           cache = cache,
           overwrite_cache = overwrite_cache,
           cache_connection = db,
@@ -189,7 +198,7 @@ tw_get_wikipedia_page_qid <- function(url = NULL,
         cache = cache,
         cache_connection = db,
         disconnect_db = disconnect_db,
-        language = language
+        language = unique_language
       )
       return(
         dplyr::left_join(
@@ -204,7 +213,7 @@ tw_get_wikipedia_page_qid <- function(url = NULL,
     if (overwrite_cache == FALSE & tw_check_cache(cache) == TRUE) {
       titles_in_cache_df <- tw_get_cached_wikipedia_page_qid(
         title = unique_title,
-        language = language,
+        language = unique_language,
         cache_connection = db,
         disconnect_db = FALSE
       )
@@ -216,7 +225,7 @@ tw_get_wikipedia_page_qid <- function(url = NULL,
           cache = cache,
           cache_connection = db,
           disconnect_db = disconnect_db,
-          language = language
+          language = unique_language
         )
         return(
           dplyr::left_join(
@@ -236,7 +245,7 @@ tw_get_wikipedia_page_qid <- function(url = NULL,
             tw_get_wikipedia_page_qid_single(
               url = NULL,
               title = x,
-              language = language,
+              language = unique_language,
               cache = cache,
               overwrite_cache = overwrite_cache,
               cache_connection = db,
@@ -251,7 +260,7 @@ tw_get_wikipedia_page_qid <- function(url = NULL,
           cache = cache,
           cache_connection = db,
           disconnect_db = disconnect_db,
-          language = language
+          language = unique_language
         )
         dplyr::left_join(
           x = tibble::tibble(title_url = title),
@@ -277,7 +286,7 @@ tw_get_wikipedia_page_qid <- function(url = NULL,
 #' @param cache_connection Defaults to NULL. If NULL, and caching is enabled, `tidywikidatar` will use a local sqlite database. A custom connection to other databases can be given (see vignette `caching` for details).
 #' @param disconnect_db Defaults to TRUE. If FALSE, leaves the connection to cache open.
 #' @param wait In seconds, defaults to 1 due to time-outs with frequent queries. Time to wait between queries to the APIs. If data are cached locally, wait time is not applied. If you are running many queries systematically you may want to add some waiting time between queries.
-#' @param attempts Defaults to 5. Number of times it re-attempts to reach the API before failing.
+#' @param attempts Defaults to 10. Number of times it re-attempts to reach the API before failing.
 #'
 #' @return A data frame (a tibble) with eight columns: `title`, `wikipedia_title`, `wikipedia_id`, `qid`, `description`, `disambiguation`, and `language`.
 #'
@@ -293,7 +302,7 @@ tw_get_wikipedia_page_qid_single <- function(title = NULL,
                                              cache_connection = NULL,
                                              disconnect_db = TRUE,
                                              wait = 1,
-                                             attempts = 5) {
+                                             attempts = 10) {
   if (is.null(url) == FALSE & is.function(url) == FALSE) {
     if (is.null(title) & is.function(title) == FALSE) {
       title <- stringr::str_extract(
@@ -369,10 +378,11 @@ tw_get_wikipedia_page_qid_single <- function(title = NULL,
       "pageid"
     )
 
-  wikipedia_id <- dplyr::if_else(condition = is.null(wikipedia_id),
-    true = as.integer(NA),
-    false = as.integer(wikipedia_id)
-  )
+  if (is.null(wikipedia_id)) {
+    wikipedia_id <- as.numeric(NA)
+  } else {
+    wikipedia_id <- as.numeric(wikipedia_id)
+  }
 
   wikidata_id <- wikidata_id_l %>%
     purrr::pluck(
@@ -383,10 +393,9 @@ tw_get_wikipedia_page_qid_single <- function(title = NULL,
       "wikibase_item"
     )
 
-  wikidata_id <- dplyr::if_else(condition = is.null(wikidata_id),
-    true = as.character(NA),
-    false = wikidata_id
-  )
+  if (is.null(wikidata_id)) {
+    wikidata_id <- as.character(NA)
+  }
 
   description <- wikidata_id_l %>%
     purrr::pluck(
@@ -397,10 +406,9 @@ tw_get_wikipedia_page_qid_single <- function(title = NULL,
       "wikibase-shortdesc"
     )
 
-  description <- dplyr::if_else(condition = is.null(description),
-    true = as.character(NA),
-    false = description
-  )
+  if (is.null(description)) {
+    description <- as.character(NA)
+  }
 
   disambiguation <- is.element(
     el = "disambiguation",
@@ -422,10 +430,9 @@ tw_get_wikipedia_page_qid_single <- function(title = NULL,
       "to"
     )
 
-  normalised <- dplyr::if_else(condition = is.null(normalised),
-    true = as.character(NA),
-    false = normalised
-  )
+  if (is.null(normalised)) {
+    normalised <- as.character(NA)
+  }
 
   redirected <- wikidata_id_l %>%
     purrr::pluck(
@@ -435,10 +442,9 @@ tw_get_wikipedia_page_qid_single <- function(title = NULL,
       "to"
     )
 
-  redirected <- dplyr::if_else(condition = is.null(redirected),
-    true = as.character(NA),
-    false = redirected
-  )
+  if (is.null(redirected)) {
+    redirected <- as.character(NA)
+  }
 
   wikipedia_title <- dplyr::case_when(
     is.na(redirected) == FALSE ~ redirected,
@@ -450,7 +456,7 @@ tw_get_wikipedia_page_qid_single <- function(title = NULL,
   df <- tibble::tibble(
     title_url = as.character(title),
     wikipedia_title = as.character(wikipedia_title),
-    wikipedia_id = as.integer(wikipedia_id),
+    wikipedia_id = as.numeric(wikipedia_id),
     qid = as.character(wikidata_id),
     description = as.character(description),
     disambiguation = as.logical(disambiguation),

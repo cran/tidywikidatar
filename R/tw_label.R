@@ -13,10 +13,13 @@
 #' @export
 #'
 #' @examples
-#'
-#' tw_get_qualifiers(id = "Q180099", p = "P26", language = "en") %>%
-#'   head(2) %>%
-#'   tw_label()
+#' \donttest{
+#' if (interactive()) {
+#'   tw_get_qualifiers(id = "Q180099", p = "P26", language = "en") %>%
+#'     head(2) %>%
+#'     tw_label()
+#' }
+#' }
 tw_label <- function(df,
                      value = TRUE,
                      language = tidywikidatar::tw_get_language(),
