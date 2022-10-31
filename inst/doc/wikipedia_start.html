@@ -14,7 +14,19 @@
 
 <title>Using Wikipedia as a starting point</title>
 
-<script src="data:application/javascript;base64,Ly8gUGFuZG9jIDIuOSBhZGRzIGF0dHJpYnV0ZXMgb24gYm90aCBoZWFkZXIgYW5kIGRpdi4gV2UgcmVtb3ZlIHRoZSBmb3JtZXIgKHRvCi8vIGJlIGNvbXBhdGlibGUgd2l0aCB0aGUgYmVoYXZpb3Igb2YgUGFuZG9jIDwgMi44KS4KZG9jdW1lbnQuYWRkRXZlbnRMaXN0ZW5lcignRE9NQ29udGVudExvYWRlZCcsIGZ1bmN0aW9uKGUpIHsKICB2YXIgaHMgPSBkb2N1bWVudC5xdWVyeVNlbGVjdG9yQWxsKCJkaXYuc2VjdGlvbltjbGFzcyo9J2xldmVsJ10gPiA6Zmlyc3QtY2hpbGQiKTsKICB2YXIgaSwgaCwgYTsKICBmb3IgKGkgPSAwOyBpIDwgaHMubGVuZ3RoOyBpKyspIHsKICAgIGggPSBoc1tpXTsKICAgIGlmICghL15oWzEtNl0kL2kudGVzdChoLnRhZ05hbWUpKSBjb250aW51ZTsgIC8vIGl0IHNob3VsZCBiZSBhIGhlYWRlciBoMS1oNgogICAgYSA9IGguYXR0cmlidXRlczsKICAgIHdoaWxlIChhLmxlbmd0aCA+IDApIGgucmVtb3ZlQXR0cmlidXRlKGFbMF0ubmFtZSk7CiAgfQp9KTsK"></script>
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -108,13 +120,20 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   for (var i = 0; i < sheets.length; i++) {
     if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
     try { var rules = sheets[i].cssRules; } catch (e) { continue; }
-    for (var j = 0; j < rules.length; j++) {
+    var j = 0;
+    while (j < rules.length) {
       var rule = rules[j];
       // check if there is a div.sourceCode rule
-      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
       var style = rule.style.cssText;
       // check if color or background-color is set
-      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
       // replace div.sourceCode by a pre.sourceCode rule
       sheets[i].deleteRule(j);
       sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
@@ -126,7 +145,187 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 
 
-<link rel="stylesheet" href="data:text/css,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" type="text/css" />
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
 
 
 
@@ -142,13 +341,35 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 
 
-<p>In the world of Wikidata, the most efficient way of getting data is usually through well-crafted <a href="https://www.wikidata.org/wiki/Wikidata:SPARQL_tutorial">SPARQL queries</a>. However, what is theoretically technically most efficient, may be highly impractical if someone is unfamiliar with the structure of such queries or with how they can be best applied to to get the most out of Wikidata.</p>
-<p>Most people who turn to Wikidata will however be familiar with its more famous sister project, Wikipedia. As this post will explain, Wikipedia pages can be used as a starting point for getting data out of Wikidata.</p>
+<p>In the world of Wikidata, the most efficient way of getting data is
+usually through well-crafted <a href="https://www.wikidata.org/wiki/Wikidata:SPARQL_tutorial">SPARQL
+queries</a>. However, what is theoretically technically most efficient,
+may be highly impractical if someone is unfamiliar with the structure of
+such queries or with how they can be best applied to to get the most out
+of Wikidata.</p>
+<p>Most people who turn to Wikidata will however be familiar with its
+more famous sister project, Wikipedia. As this post will explain,
+Wikipedia pages can be used as a starting point for getting data out of
+Wikidata.</p>
 <div id="setup-and-caching" class="section level2">
 <h2>Setup and caching</h2>
-<p>An introductory note on caching. It is generally advisable to enable cache at the beginning of each script. Thanks to caching, when a block of code based on <code>tidywikidatar</code> is re-run it gives results almost instantly. But given that <code>tidywikidatar</code> queries for Wikidata items one at a time, it can be relatively time-consuming when it is run for the first time. So be patient when you run some of the commands below for the first time, and considering testing code with only a sample of the data at first (e.g. by adding something such as <code>slice_sample(n = 100)</code> to the data frame you use as a starting point).</p>
-<p>Especially if you intend to use Wikidata in different projects, it may make sense to have the cache stored in a folder outside the current project. As the data can be recovered, it is usually unnecessary to backup the cache folder, and unwise to keep it in folder that are constantly synced with online services.</p>
-<p>Most users should be perfectly fine using the default SQLite database for caching.</p>
+<p>An introductory note on caching. It is generally advisable to enable
+cache at the beginning of each script. Thanks to caching, when a block
+of code based on <code>tidywikidatar</code> is re-run it gives results
+almost instantly. But given that <code>tidywikidatar</code> queries for
+Wikidata items one at a time, it can be relatively time-consuming when
+it is run for the first time. So be patient when you run some of the
+commands below for the first time, and considering testing code with
+only a sample of the data at first (e.g. by adding something such as
+<code>slice_sample(n = 100)</code> to the data frame you use as a
+starting point).</p>
+<p>Especially if you intend to use Wikidata in different projects, it
+may make sense to have the cache stored in a folder outside the current
+project. As the data can be recovered, it is usually unnecessary to
+backup the cache folder, and unwise to keep it in folder that are
+constantly synced with online services.</p>
+<p>Most users should be perfectly fine using the default SQLite database
+for caching.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr, <span class="at">warn.conflicts =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">&quot;tidywikidatar&quot;</span>)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -156,7 +377,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">tw_set_cache_folder</span>(<span class="at">path =</span> fs<span class="sc">::</span><span class="fu">path</span>(fs<span class="sc">::</span><span class="fu">path_home_r</span>(), <span class="st">&quot;R&quot;</span>, <span class="st">&quot;tw_data&quot;</span>))</span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">tw_set_language</span>(<span class="at">language =</span> <span class="st">&quot;en&quot;</span>)</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">tw_create_cache_folder</span>(<span class="at">ask =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
-<p>More advanced users, especially those relying on <code>tidywikidatar</code> in Shiny apps, may instead prefer relying on a MySql database, setting up the connection at the beginning of each session as follows.</p>
+<p>More advanced users, especially those relying on
+<code>tidywikidatar</code> in Shiny apps, may instead prefer relying on
+a MySql database, setting up the connection at the beginning of each
+session as follows.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr, <span class="at">warn.conflicts =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">&quot;tidywikidatar&quot;</span>)</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -176,8 +400,16 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <div id="members-of-the-european-parliament" class="section level2">
 <h2>Members of the European parliament</h2>
-<p>Let’s suppose we are interested in finding details about the European Parliament and its members, and we do not want to approach SPARQL queries. We are, however, familiar with Wikipedia and we are happy to start from a Wikipedia page such as <a href="https://en.wikipedia.org/wiki/List_of_members_of_the_European_Parliament_(2019%E2%80%932024)">List of members of the European Parliament (2019–2024)</a>. It includes links to the Wikipedia pages of all Members of the European Parliament (MEPs), the party list from where they were elected at national level, the elections themselves, etc.</p>
-<p>This is how we can take it from there with <code>tidywikidatar</code>.</p>
+<p>Let’s suppose we are interested in finding details about the European
+Parliament and its members, and we do not want to approach SPARQL
+queries. We are, however, familiar with Wikipedia and we are happy to
+start from a Wikipedia page such as <a href="https://en.wikipedia.org/wiki/List_of_members_of_the_European_Parliament_(2019%E2%80%932024)">List
+of members of the European Parliament (2019–2024)</a>. It includes links
+to the Wikipedia pages of all Members of the European Parliament (MEPs),
+the party list from where they were elected at national level, the
+elections themselves, etc.</p>
+<p>This is how we can take it from there with
+<code>tidywikidatar</code>.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>mep_wiki_df <span class="ot">&lt;-</span> <span class="fu">tw_get_wikipedia_page_links</span>(</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">url =</span> <span class="st">&quot;https://en.wikipedia.org/wiki/List_of_members_of_the_European_Parliament_(2019–2024)&quot;</span>)</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -213,7 +445,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  9 Wikimedia project page                         6</span></span>
 <span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 10 electoral alliance                             6</span></span>
 <span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # … with 57 more rows</span></span></code></pre></div>
-<p>It’s mostly humans - likely, mostly MEPs themselves, but also political parties, elections, and other Wikipedia page lists.</p>
+<p>It’s mostly humans - likely, mostly MEPs themselves, but also
+political parties, elections, and other Wikipedia page lists.</p>
 <p>We can filter results in order to keep only humans as follows:</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>humans_df <span class="ot">&lt;-</span> mep_wiki_df <span class="sc">%&gt;%</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(qid) <span class="sc">%&gt;%</span></span>
@@ -224,15 +457,26 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tw_get_property</span>(<span class="at">p =</span> <span class="st">&quot;P39&quot;</span>) <span class="sc">%&gt;%</span> <span class="co"># position held</span></span>
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(value <span class="sc">==</span> <span class="st">&quot;Q27169&quot;</span>) <span class="sc">%&gt;%</span> <span class="co"># keep only MEPs</span></span>
 <span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(id)</span></code></pre></div>
-<p>It appears we have 819 humans, and 805 among them who have been members of the European Parliament mentioned in this page. Perhaps some of those mentioned in the page are people who never took their place, or perhaps MEPs in previous legislatures?</p>
-<p>To get a step closer to clarifying this, we can check the qualifiers of a property. So if you look at the property <a href="https://www.wikidata.org/wiki/Q2391857#P39">“position held” for a member of the European Parliament (2019-2024)</a>, you may notice that the “position held” -&gt; “member of the European Parliament” has a few qualifiers, including “parliamentary term” which may have value “Ninth European Parliament”.</p>
+<p>It appears we have 819 humans, and 805 among them who have been
+members of the European Parliament mentioned in this page. Perhaps some
+of those mentioned in the page are people who never took their place, or
+perhaps MEPs in previous legislatures?</p>
+<p>To get a step closer to clarifying this, we can check the qualifiers
+of a property. So if you look at the property <a href="https://www.wikidata.org/wiki/Q2391857#P39">“position held” for a
+member of the European Parliament (2019-2024)</a>, you may notice that
+the “position held” -&gt; “member of the European Parliament” has a few
+qualifiers, including “parliamentary term” which may have value “Ninth
+European Parliament”.</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>meps9_df <span class="ot">&lt;-</span> meps_df <span class="sc">%&gt;%</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tw_get_qualifiers</span>(<span class="at">p =</span> <span class="st">&quot;P39&quot;</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(qualifier_property <span class="sc">==</span> <span class="st">&quot;P2937&quot;</span>,</span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>         qualifier_value <span class="sc">==</span> <span class="st">&quot;Q64038205&quot;</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(id)</span></code></pre></div>
-<p>It appears that 801 have actually been members of the “Ninth European Parliament”.</p>
-<p>Out of curiosity, and as a quality check, let’s see who are the MEPs mentioned in the page who <em>have not</em> been members of the ninth legislature.</p>
+<p>It appears that 801 have actually been members of the “Ninth European
+Parliament”.</p>
+<p>Out of curiosity, and as a quality check, let’s see who are the MEPs
+mentioned in the page who <em>have not</em> been members of the ninth
+legislature.</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">anti_join</span>(meps_df,</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>          meps9_df,</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">by =</span> <span class="st">&quot;id&quot;</span>) <span class="sc">%&gt;%</span></span>
@@ -245,7 +489,15 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 Q1055449  Matteo Salvini    </span></span>
 <span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4 Q57630    Valdis Dombrovskis</span></span></code></pre></div>
 <p>Indeed, all of them gave up their seat for one reason or another.</p>
-<p>As we have reason to believe the Wikipedia page we have used as a starting point is reasonably complete, we can now proceed assuming that we now a reasonably complete list of MEPs of the ninth legislature. We can then take it as a starting point for all sorts questions, such as which position they held before becoming MEPs (or at the same time as being MEPs), or who among them joined the European Parliament after the beginning of the legislature. This is, for example, a list of MEPs who joined the parliament only in 2021, and with reference to whom did they replace:</p>
+<p>As we have reason to believe the Wikipedia page we have used as a
+starting point is reasonably complete, we can now proceed assuming that
+we now a reasonably complete list of MEPs of the ninth legislature. We
+can then take it as a starting point for all sorts questions, such as
+which position they held before becoming MEPs (or at the same time as
+being MEPs), or who among them joined the European Parliament after the
+beginning of the legislature. This is, for example, a list of MEPs who
+joined the parliament only in 2021, and with reference to whom did they
+replace:</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>replacing_meps_df <span class="ot">&lt;-</span> meps9_df <span class="sc">%&gt;%</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tw_get_qualifiers</span>(<span class="at">p =</span> <span class="st">&quot;P39&quot;</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(qualifier_id <span class="sc">==</span> <span class="st">&quot;Q27169&quot;</span>, <span class="co"># member of the european parliament</span></span>
@@ -273,7 +525,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 7 Q18225970  Tom Vandenkendelaere          Q270530         Marianne Thyssen </span></span>
 <span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 8 Q18225970  Tom Vandenkendelaere          Q12869          Kris Peeters     </span></span>
 <span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 9 Q63224243  Ernő Schaller-Baross          Q731042         József Szájer</span></span></code></pre></div>
-<p>Curiously, we find that there are two current MEPs who have replaced a colleague after the beginning of the legislature more than once. Can we confirm in which legislatures those who have replaced a colleague more than once have served as MEPs? Of course.</p>
+<p>Curiously, we find that there are two current MEPs who have replaced
+a colleague after the beginning of the legislature more than once. Can
+we confirm in which legislatures those who have replaced a colleague
+more than once have served as MEPs? Of course.</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>replacing_meps_df <span class="sc">%&gt;%</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(new_mep_id) <span class="sc">%&gt;%</span></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(<span class="at">name =</span> <span class="st">&quot;n&quot;</span>) <span class="sc">%&gt;%</span></span>
@@ -291,7 +546,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 Tom Vandenkendelaere Ninth European Parliament </span></span>
 <span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 João Pimenta Lopes   Eighth European Parliament</span></span>
 <span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4 João Pimenta Lopes   Ninth European Parliament</span></span></code></pre></div>
-<p>This <a href="https://medium.com/european-data-journalism-network/a-new-r-package-for-exploring-the-wealth-of-information-stored-by-wikidata-fe85e82b6440">blog post</a> presents some examples of the way Wikidata works based on MEPs, and they can easily be replicated taking it from here.</p>
+<p>This <a href="https://medium.com/european-data-journalism-network/a-new-r-package-for-exploring-the-wealth-of-information-stored-by-wikidata-fe85e82b6440">blog
+post</a> presents some examples of the way Wikidata works based on MEPs,
+and they can easily be replicated taking it from here.</p>
 <p>Let’s make some more examples.</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>meps9_pob_df <span class="ot">&lt;-</span> meps9_df <span class="sc">%&gt;%</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">mep =</span> <span class="fu">tw_get_label</span>(id)) <span class="sc">%&gt;%</span></span>
@@ -311,8 +568,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>      <span class="at">convert =</span> <span class="cn">TRUE</span></span>
 <span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
 <span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">is.na</span>(pob_latitude)<span class="sc">==</span><span class="cn">FALSE</span>)</span></code></pre></div>
-<p>We have a place of birth on the records for 795 MEPs out of 801. Not bad. We could use some proxy for the cases when such information is unavailable, for example using properties such as “residence” (<a href="https://www.wikidata.org/wiki/Property:P551">P551</a>) or the earliest place where they got their education, but for the time being we will leave it at that.</p>
-<p>We could now easily place these data on a map (code example not run to remove dependency on external files and packages).</p>
+<p>We have a place of birth on the records for 795 MEPs out of 801. Not
+bad. We could use some proxy for the cases when such information is
+unavailable, for example using properties such as “residence” (<a href="https://www.wikidata.org/wiki/Property:P551">P551</a>) or the
+earliest place where they got their education, but for the time being we
+will leave it at that.</p>
+<p>We could now easily place these data on a map (code example not run
+to remove dependency on external files and packages).</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>world_sf_file <span class="ot">&lt;-</span> fs<span class="sc">::</span><span class="fu">path</span>(<span class="st">&quot;world_geo_data&quot;</span>, <span class="st">&quot;world_sf.rds&quot;</span>)</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -341,10 +603,23 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>  ggplot2<span class="sc">::</span><span class="fu">geom_sf</span>(<span class="at">data =</span> world_sf) <span class="sc">+</span></span>
 <span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>  ggplot2<span class="sc">::</span><span class="fu">geom_sf</span>(<span class="at">size =</span> <span class="fl">0.1</span>) <span class="sc">+</span></span>
 <span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>  ggplot2<span class="sc">::</span><span class="fu">theme_minimal</span>()</span></code></pre></div>
-<p>And we can notice that quite a few MEPs were not born in an EU country. We could then geocode the locations, or ask Wikidata in which country their place of birth is located.</p>
+<p>And we can notice that quite a few MEPs were not born in an EU
+country. We could then geocode the locations, or ask Wikidata in which
+country their place of birth is located.</p>
 <p>Here we already start to meet some of the quirks of Wikidata.</p>
-<p>The question “in which country is this city located” seems straightforward, but as illustrated <a href="https://edjnet.github.io/tidywikidatar/#getting-the-right-property-when-more-than-one-is-available">in the package readme</a> it actually isn’t always the case, as, for example, London has many values for the property “country”, all the way from “Roman Empire” through “United Kingdom”. Enabling the <code>only_first</code> parameters, which is a the most efficient option in many circumstances, is not a sensible solution in this case, as predicting the order of properties is not straightforward.</p>
-<p>To make things easier in such circumstances <code>tidywikidatar</code> includes dedicated parameters: <code>preferred</code> (which gives back the value recorded as “preferred”), and <code>latest_start_time</code> (which checks the qualifiers, and selects the one with the most recent “start time”).</p>
+<p>The question “in which country is this city located” seems
+straightforward, but as illustrated <a href="https://edjnet.github.io/tidywikidatar/#getting-the-right-property-when-more-than-one-is-available">in
+the package readme</a> it actually isn’t always the case, as, for
+example, London has many values for the property “country”, all the way
+from “Roman Empire” through “United Kingdom”. Enabling the
+<code>only_first</code> parameters, which is a the most efficient option
+in many circumstances, is not a sensible solution in this case, as
+predicting the order of properties is not straightforward.</p>
+<p>To make things easier in such circumstances
+<code>tidywikidatar</code> includes dedicated parameters:
+<code>preferred</code> (which gives back the value recorded as
+“preferred”), and <code>latest_start_time</code> (which checks the
+qualifiers, and selects the one with the most recent “start time”).</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>meps9_pob_df <span class="sc">%&gt;%</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pob_country_id =</span> <span class="fu">tw_get_p</span>(<span class="at">id =</span> place_of_birth_id,</span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">p =</span> <span class="st">&quot;P17&quot;</span>,</span>
@@ -367,7 +642,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  9 Q31               23 Belgium       </span></span>
 <span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 10 Q213              22 Czech Republic</span></span>
 <span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # … with 48 more rows</span></span></code></pre></div>
-<p>Keep in mind that enabling <code>latest_start_time</code> has an impact on processing time (as it relies on <code>tw_get_qualifiers()</code> which caches data separately), but that enabling <code>preferred</code> is just as fast as having it disabled.</p>
+<p>Keep in mind that enabling <code>latest_start_time</code> has an
+impact on processing time (as it relies on
+<code>tw_get_qualifiers()</code> which caches data separately), but that
+enabling <code>preferred</code> is just as fast as having it
+disabled.</p>
 </div>
 
 
