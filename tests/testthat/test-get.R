@@ -1,5 +1,5 @@
 library("testthat")
-
+library("tidywikidatar")
 test_that("check if tw_get returns tibble with four columns and meaningful number of rows", {
   testthat::skip_if_offline()
 

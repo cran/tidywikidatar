@@ -9,7 +9,7 @@
 #' @param disconnect_db Defaults to TRUE. If FALSE, leaves the connection to cache open.
 #' @param wait In seconds, defaults to 0. Time to wait between queries to Wikidata. If data are cached locally, wait time is not applied. If you are running many queries systematically you may want to add some waiting time between queries.
 #'
-#' @return A data.frame (a tibble) with three columns (id, property, and value). If item not found or trouble connecting with the server, an data frame with three columns and zero rows is returned, with the warning as an attribute, which can be retrieved with `attr(output, "warning"))`
+#' @return A data.frame (a tibble) with four columns (id, property, value, and rank). If item not found or trouble connecting with the server, a data frame with four columns and zero rows is returned, with the warning as an attribute, which can be retrieved with `attr(output, "warning"))`
 #'
 #' @examples
 #' tidywikidatar:::tw_get_single(
@@ -74,7 +74,27 @@ tw_get_single <- function(id,
 
   if (is.character(item)) {
     usethis::ui_oops(item)
-    output <- tidywikidatar::tw_empty_item
+    output <- tibble::tibble(
+      id = as.character(id),
+      property = "error",
+      value = stringr::str_remove(
+        string = item,
+        pattern = "The API returned an error: "
+      ),
+      rank = as.character(NA)
+    )
+
+    if (tw_check_cache(cache) == TRUE) {
+      tw_write_item_to_cache(
+        item_df = output,
+        language = language,
+        cache = cache,
+        overwrite_cache = overwrite_cache,
+        cache_connection = db,
+        disconnect_db = disconnect_db
+      )
+    }
+
     attr(output, "warning") <- item
     return(output)
   }
