@@ -1,6 +1,6 @@
 Package: tidywikidatar
 Title: Explore 'Wikidata' Through Tidy Data Frames
-Version: 0.5.6
+Version: 0.5.7
 Authors@R: 
     c(person(given = "Giorgio",
              family = "Comai",
@@ -25,9 +25,9 @@ VignetteBuilder: knitr
 Depends: R (>= 2.10)
 LazyData: true
 NeedsCompilation: no
-Packaged: 2023-01-31 14:33:45 UTC; g
+Packaged: 2023-03-10 07:55:38 UTC; g
 Author: Giorgio Comai [aut, cre, cph] (<https://orcid.org/0000-0002-0515-9542>),
   EDJNet [fnd]
 Maintainer: Giorgio Comai <giorgio.comai@cci.tn.it>
 Repository: CRAN
-Date/Publication: 2023-01-31 15:40:02 UTC
+Date/Publication: 2023-03-10 08:50:02 UTC
