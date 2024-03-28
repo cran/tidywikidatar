@@ -340,7 +340,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidywikidatar)</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(tidywikidatar)</span></code></pre></div>
 <p>In order to reduce load on Wikidata’s server and to speed up the
 processing of data, <code>tidywikidatar</code> makes extensive use of
 local caching.</p>
@@ -368,19 +368,19 @@ language when relevant.</p>
 <h2>Caching with SQLite</h2>
 <p>In <code>tidywikidatar</code>, it is possible to enable caching
 with:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tw_enable_cache</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">tw_enable_cache</span>()</span></code></pre></div>
 <p>If you do not include further parameters, by default
 <code>tidywikidatar</code> will use a local SQLite database for
 caching.</p>
 <p>You can choose in which folder the SQLite database will be stored
 with <code>tw_set_cache_folder()</code>; if not already existing, you
 can create that folder with <code>tw_create_cache_folder()</code>.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tw_set_cache_folder</span>(<span class="at">path =</span> fs<span class="sc">::</span><span class="fu">path</span>(</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  fs<span class="sc">::</span><span class="fu">path_home_r</span>(),</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;R&quot;</span>,</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;tw_data&quot;</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>))</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="fu">tw_create_cache_folder</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">tw_set_cache_folder</span>(<span class="at">path =</span> fs<span class="sc">::</span><span class="fu">path</span>(</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  fs<span class="sc">::</span><span class="fu">path_home_r</span>(),</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="st">&quot;R&quot;</span>,</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  <span class="st">&quot;tw_data&quot;</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>))</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="fu">tw_create_cache_folder</span>()</span></code></pre></div>
 </div>
 <div id="caching-with-other-database-backends" class="section level2">
 <h2>Caching with other database backends</h2>
@@ -388,19 +388,19 @@ can create that folder with <code>tw_create_cache_folder()</code>.</p>
 accessed most easily using the following approach, having ensured that
 the relevant driver (and <code>odbc</code> package) have previously been
 installed:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tw_enable_cache</span>(<span class="at">SQLite =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tw_set_cache_db</span>(</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">driver =</span> <span class="st">&quot;MySQL&quot;</span>,</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">host =</span> <span class="st">&quot;localhost&quot;</span>,</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">port =</span> <span class="dv">3306</span>,</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">database =</span> <span class="st">&quot;tidywikidatar&quot;</span>,</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">user =</span> <span class="st">&quot;secret_username&quot;</span>,</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">pwd =</span> <span class="st">&quot;secret_password&quot;</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="co"># for testing, consider running a local database e.g. with:</span></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="co"># docker run --name tidywikidatar_db -p 3306:3306 -e MYSQL_ROOT_PASSWORD=secret_root_password -e MYSQL_USER=secret_username -e MYSQL_PASSWORD=secret_password -e MYSQL_DATABASE=tidywikidatar mysql:latest</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">tw_enable_cache</span>(<span class="at">SQLite =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">tw_set_cache_db</span>(</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="at">driver =</span> <span class="st">&quot;MySQL&quot;</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="at">host =</span> <span class="st">&quot;localhost&quot;</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="at">port =</span> <span class="dv">3306</span>,</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  <span class="at">database =</span> <span class="st">&quot;tidywikidatar&quot;</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  <span class="at">user =</span> <span class="st">&quot;secret_username&quot;</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>  <span class="at">pwd =</span> <span class="st">&quot;secret_password&quot;</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>)</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co"># for testing, consider running a local database e.g. with:</span></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co"># docker run --name tidywikidatar_db -p 3306:3306 -e MYSQL_ROOT_PASSWORD=secret_root_password -e MYSQL_USER=secret_username -e MYSQL_PASSWORD=secret_password -e MYSQL_DATABASE=tidywikidatar mysql:latest</span></span></code></pre></div>
 <p>It is also technically possible to pass directly a connection
 generated with <code>DBI::dbConnect()</code> to each function.</p>
 </div>
@@ -412,8 +412,8 @@ example, item information retrieved with
 table called <code>tw_item_en</code>.</p>
 <p>The name of the table is unique and is generated by
 <code>tw_get_cache_table_name()</code>. For example:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tw_get_cache_table_name</span>(<span class="at">type =</span> <span class="st">&quot;item&quot;</span>, <span class="at">language =</span> <span class="st">&quot;en&quot;</span>)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;tw_item_en&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">tw_get_cache_table_name</span>(<span class="at">type =</span> <span class="st">&quot;item&quot;</span>, <span class="at">language =</span> <span class="st">&quot;en&quot;</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co">#&gt; [1] &quot;tw_item_en&quot;</span></span></code></pre></div>
 </div>
 <div id="column-types-and-indexing" class="section level2">
 <h2>Column types and indexing</h2>
@@ -430,26 +430,26 @@ and <code>tw_index_cache_search()</code>. It is possible to apply this
 to all existing functions of a given type as outlined below. This speeds
 up retrieval time dramatically on MySql databases; impact on other types
 of databases has not been thoroughly tested.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>db <span class="ot">&lt;-</span> <span class="fu">tw_connect_to_cache</span>()</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>tables_v <span class="ot">&lt;-</span> DBI<span class="sc">::</span><span class="fu">dbListTables</span>(<span class="at">conn =</span> db)</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co"># for search cache tables</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>purrr<span class="sc">::</span><span class="fu">walk</span>(</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">.x =</span> tables_v[stringr<span class="sc">::</span><span class="fu">str_starts</span>(<span class="at">string =</span> tables_v, <span class="st">&quot;tw_search_item&quot;</span>)],</span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">.f =</span> <span class="cf">function</span>(x) {</span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tw_index_cache_search</span>(<span class="at">table_name =</span> x)</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="co"># for item cache tables</span></span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>purrr<span class="sc">::</span><span class="fu">walk</span>(</span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">.x =</span> tables_v[stringr<span class="sc">::</span><span class="fu">str_starts</span>(<span class="at">string =</span> tables_v, <span class="st">&quot;tw_item&quot;</span>)],</span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">.f =</span> <span class="cf">function</span>(x) {</span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tw_index_cache_item</span>(<span class="at">table_name =</span> x)</span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>db <span class="ot">&lt;-</span> <span class="fu">tw_connect_to_cache</span>()</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>tables_v <span class="ot">&lt;-</span> DBI<span class="sc">::</span><span class="fu">dbListTables</span>(<span class="at">conn =</span> db)</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="co"># for search cache tables</span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>purrr<span class="sc">::</span><span class="fu">walk</span>(</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>  <span class="at">.x =</span> tables_v[stringr<span class="sc">::</span><span class="fu">str_starts</span>(<span class="at">string =</span> tables_v, <span class="st">&quot;tw_search_item&quot;</span>)],</span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>  <span class="at">.f =</span> <span class="cf">function</span>(x) {</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>    <span class="fu">tw_index_cache_search</span>(<span class="at">table_name =</span> x)</span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>  }</span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a>)</span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co"># for item cache tables</span></span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a>purrr<span class="sc">::</span><span class="fu">walk</span>(</span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a>  <span class="at">.x =</span> tables_v[stringr<span class="sc">::</span><span class="fu">str_starts</span>(<span class="at">string =</span> tables_v, <span class="st">&quot;tw_item&quot;</span>)],</span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a>  <span class="at">.f =</span> <span class="cf">function</span>(x) {</span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a>    <span class="fu">tw_index_cache_item</span>(<span class="at">table_name =</span> x)</span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a>  }</span>
+<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a>)</span></code></pre></div>
 </div>
 
 
