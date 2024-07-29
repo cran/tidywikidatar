@@ -40,7 +40,8 @@ tw_get_single <- function(id,
   if (length(id) > 1) {
     cli::cli_abort(c(
       "`id` must have length 1.",
-      i = "Consider using `tw_get()` for multiple inputs."))
+      i = "Consider using `tw_get()` for multiple inputs."
+    ))
   } else if (length(id) == 0) {
     return(tidywikidatar::tw_empty_item)
   }
@@ -287,7 +288,8 @@ tw_get <- function(id,
         dplyr::left_join(
           x = tibble::tibble(id = id),
           y = item_df,
-          by = "id"
+          by = "id",
+          relationship = "many-to-many"
         )
       )
     }
@@ -352,7 +354,8 @@ tw_get <- function(id,
             items_from_cache_df,
             items_not_in_cache_df
           ),
-          by = "id"
+          by = "id",
+          relationship = "many-to-many"
         ) %>%
           dplyr::filter(is.na(.data$id) == FALSE)
       }

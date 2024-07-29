@@ -31,15 +31,17 @@ tw_get_wikipedia_base_api_url <- function(url = NULL,
       cli::cli_abort("Either {.arg language} or full url must be provided.")
     }
   } else {
-    check_url_lv <- stringr::str_starts(string = url, pattern = "http", negate = TRUE)
+    check_url_lv <- stringr::str_starts(string = url, pattern = "http")
     if (sum(is.na(check_url_lv)) > 0) {
       url <- url[is.na(check_url_lv) == FALSE]
       cli::cli_warn(c("One or more of the given URLs is actually NA.", i = "Only valid URLs will be processed."))
     }
-    check_url_lv <- stringr::str_starts(string = url, pattern = "http", negate = TRUE)
+    check_url_lv <- stringr::str_starts(string = url, pattern = "http")
     if (sum(check_url_lv) != length(check_url_lv)) {
-      cli::cli_abort(c("One or more of the Wikipedia URL provided does not start with `http` as expected for a URL.",
-                     "If you are actually providing Wikipedia page titles, leave the `url` parameter to NULL, and use the `title` parameter instead."))
+      cli::cli_abort(c(
+        "One or more of the Wikipedia URL provided does not start with `http` as expected for a URL.",
+        "If you are actually providing Wikipedia page titles, leave the `url` parameter to NULL, and use the `title` parameter instead."
+      ))
     }
     title <- stringr::str_extract(
       string = url,
@@ -122,18 +124,28 @@ tw_get_wikipedia_page_qid <- function(url = NULL,
                                       attempts = 10) {
   if (is.null(url) == FALSE) {
     if (is.null(title)) {
-      title <- stringr::str_extract(
-        string = url,
-        pattern = "(?<=https://[[a-z]][[a-z]].wikipedia.org/wiki/).*"
+      title <- dplyr::case_when(
+        stringr::str_starts(string = url, pattern = "http") ~ stringr::str_extract(
+          string = url,
+          pattern = "(?<=https://[[a-z]][[a-z]].wikipedia.org/wiki/).*"
+        ),
+        stringr::str_starts(string = url,
+                            pattern = stringr::fixed("/wiki/")) ~ stringr::str_remove(
+                              string = url,
+                              pattern = stringr::fixed("/wiki/")
+                            ),
+        .default = ""
       )
     } else {
       cli::cli_abort("Either url or title must be provided, not both.")
     }
 
-    language <- stringr::str_extract(
-      string = url,
-      pattern = "(?<=https://)[[a-z]][[a-z]](?=.wikipedia.org/)"
-    )
+    if (sum(stringr::str_starts(string = url, pattern = "http"))==length(url)) {
+      language <- stringr::str_extract(
+        string = url,
+        pattern = "(?<=https://)[[a-z]][[a-z]](?=.wikipedia.org/)"
+      )
+    }
   }
 
   unique_language <- unique(language)
@@ -306,18 +318,25 @@ tw_get_wikipedia_page_qid_single <- function(title = NULL,
                                              attempts = 10) {
   if (!is.null(url) && !is.function(url)) {
     if (is.null(title) & is.function(title) == FALSE) {
-      title <- stringr::str_extract(
-        string = url,
-        pattern = "(?<=https://[[a-z]][[a-z]].wikipedia.org/wiki/).*"
-      )
+      if (stringr::str_starts(string = url,
+                              pattern = stringr::fixed("/wiki/"))) {
+        title <- stringr::str_remove(string = url,
+                                     pattern = stringr::fixed("/wiki/"))
+      } else {
+        title <- stringr::str_extract(
+          string = url,
+          pattern = "(?<=https://[[a-z]][[a-z]].wikipedia.org/wiki/).*"
+        )
+
+        language <- stringr::str_extract(
+          string = url,
+          pattern = "(?<=https://)[[a-z]][[a-z]](?=.wikipedia.org/)"
+        )
+      }
+      url <- NULL
     } else {
       cli::cli_abort("Either url or title must be provided, not both.")
     }
-
-    language <- stringr::str_extract(
-      string = url,
-      pattern = "(?<=https://)[[a-z]][[a-z]](?=.wikipedia.org/)"
-    )
   }
 
   db <- tw_connect_to_cache(
@@ -368,7 +387,7 @@ tw_get_wikipedia_page_qid_single <- function(title = NULL,
     cli::cli_abort(c(
       "Could not reach the API with {attempts} attempts.",
       i = "Consider increasing the waiting time between calls with the {.arg wait} parameter or check your internet connection."
-      ))
+    ))
   } else {
     wikidata_id_l <- api_result
   }

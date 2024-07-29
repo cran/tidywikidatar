@@ -1,3 +1,10 @@
+# tidywikidatar 0.5.9
+
+* drop dependency on `WikipediR`
+* report informative error message from the api in `tw_search` and related functions
+* include "tidywikidatar/version" user agent in `tw_search` and related functions
+* fix `tw_get_wikipedia_section_links` when url provided as input
+
 # tidywikidatar 0.5.8
 
 * consistent results rather than error when searching empty string with `tw_search`
