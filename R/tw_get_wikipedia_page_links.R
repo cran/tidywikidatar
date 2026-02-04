@@ -1,37 +1,42 @@
-#' Get all Wikidata Q identifiers of all Wikipedia pages that appear in one or more pages
+#' Get all Wikidata Q identifiers of all Wikipedia pages that appear in one or
+#' more pages
 #'
-#' @param url Full URL to a Wikipedia page. If given, title and language can be left empty.
-#' @param title Title of a Wikipedia page or final parts of its url. If given, url can be left empty, but language must be provided.
-#' @param language Two-letter language code used to define the Wikipedia version to use. Defaults to language set with `tw_set_language()`; if not set, "en". If url given, this can be left empty.
-#' @param cache Defaults to NULL. If given, it should be given either TRUE or FALSE. Typically set with `tw_enable_cache()` or `tw_disable_cache()`.
-#' @param overwrite_cache Logical, defaults to FALSE. If TRUE, it overwrites the table in the local sqlite database. Useful if the original Wikidata object has been updated.
-#' @param cache_connection Defaults to NULL. If NULL, and caching is enabled, `tidywikidatar` will use a local sqlite database. A custom connection to other databases can be given (see vignette `caching` for details).
-#' @param disconnect_db Defaults to TRUE. If FALSE, leaves the connection to cache open.
-#' @param wait In seconds, defaults to 1 due to time-outs with frequent queries. Time to wait between queries to the APIs. If data are cached locally, wait time is not applied. If you are running many queries systematically you may want to add some waiting time between queries.
-#' @param attempts Defaults to 10. Number of times it re-attempts to reach the API before failing.
+#' @param url Full url to a Wikipedia page. If given, title and language can be
+#'   left empty.
+#' @param title Title of a Wikipedia page or final parts of its url. If given,
+#'   url can be left empty, but language must be provided.
+#' @param language Two-letter language code used to define the Wikipedia version
+#'   to use. Defaults to language set with [tw_set_language()]; if not set,
+#'   "en". If url given, this can be left empty.
 #'
-#' @return A data frame (a tibble) with eight columns: `source_title_url`, `source_wikipedia_title`, `source_qid`, `wikipedia_title`, `wikipedia_id`, `qid`, `description`, and `language`.
+#' @inheritParams tw_get_image
+#' @inheritParams tw_get_image_metadata
+#'
+#' @return A data frame (a tibble) with eight columns: `source_title_url`,
+#'   `source_wikipedia_title`, `source_qid`, `wikipedia_title`, `wikipedia_id`,
+#'   `qid`, `description`, and `language`.
 #' @export
 #'
 #' @examples
 #' if (interactive()) {
 #'   tw_get_wikipedia_page_links(title = "Margaret Mead", language = "en")
 #' }
-tw_get_wikipedia_page_links <- function(url = NULL,
-                                        title = NULL,
-                                        language = tidywikidatar::tw_get_language(),
-                                        cache = NULL,
-                                        overwrite_cache = FALSE,
-                                        cache_connection = NULL,
-                                        disconnect_db = TRUE,
-                                        wait = 1,
-                                        attempts = 10) {
+tw_get_wikipedia_page_links <- function(
+  url = NULL,
+  title = NULL,
+  language = tidywikidatar::tw_get_language(),
+  cache = NULL,
+  overwrite_cache = FALSE,
+  cache_connection = NULL,
+  disconnect_db = TRUE,
+  wait = 1,
+  attempts = 10
+) {
   db <- tw_connect_to_cache(
     connection = cache_connection,
     language = language,
     cache = cache
   )
-
 
   wikipedia_page_qid_df <- tw_get_wikipedia_page_qid(
     title = title,
@@ -54,7 +59,7 @@ tw_get_wikipedia_page_links <- function(url = NULL,
     ) %>%
     dplyr::distinct(.data$source_title_url, .keep_all = TRUE)
 
-  if (tw_check_cache(cache) == TRUE & overwrite_cache == FALSE) {
+  if (tw_check_cache(cache) & !overwrite_cache) {
     db_result <- tw_get_cached_wikipedia_page_links(
       title = title,
       language = language,
@@ -66,7 +71,9 @@ tw_get_wikipedia_page_links <- function(url = NULL,
       previously_cached_df <- db_result %>%
         dplyr::collect()
       unique_title <- unique(title)
-      titles_not_in_cache <- unique_title[!is.element(unique_title, previously_cached_df$source_title_url)]
+      titles_not_in_cache <- unique_title[
+        !is.element(unique_title, previously_cached_df$source_title_url)
+      ]
 
       if (length(titles_not_in_cache) == 0) {
         tw_disconnect_from_cache(
@@ -137,42 +144,42 @@ tw_get_wikipedia_page_links <- function(url = NULL,
 }
 
 
-#' Get all Wikidata Q identifiers of all Wikipedia pages that appear in a given page
+#' Get all Wikidata Q identifiers of all Wikipedia pages that appear in a given
+#' page
 #'
-#' @param url Full URL to a Wikipedia page. If given, title and language can be left empty.
-#' @param title Title of a Wikipedia page or final parts of its url. If given, url can be left empty, but language must be provided.
-#' @param language Two-letter language code used to define the Wikipedia version to use. Defaults to language set with `tw_set_language()`; if not set, "en". If url given, this can be left empty.
-#' @param cache Defaults to NULL. If given, it should be given either TRUE or FALSE. Typically set with `tw_enable_cache()` or `tw_disable_cache()`.
-#' @param overwrite_cache Logical, defaults to FALSE. If TRUE, it overwrites the table in the local sqlite database. Useful if the original Wikidata object has been updated.
-#' @param cache_connection Defaults to NULL. If NULL, and caching is enabled, `tidywikidatar` will use a local sqlite database. A custom connection to other databases can be given (see vignette `caching` for details).
-#' @param disconnect_db Defaults to TRUE. If FALSE, leaves the connection to cache open.
-#' @param wait In seconds, defaults to 1 due to time-outs with frequent queries. Time to wait between queries to the APIs. If data are cached locally, wait time is not applied. If you are running many queries systematically you may want to add some waiting time between queries.
-#' @param attempts Defaults to 10. Number of times it re-attempts to reach the API before failing.
-#' @param wikipedia_page_qid_df Defaults to NULL. If given, used to reduce calls to cache. A data frame
+#' @param wikipedia_page_qid_df Defaults to `NULL`. If given, used to reduce
+#'   calls to cache. Must be a data frame.
 #'
-#' @return A data frame (a tibble) with four columns: `wikipedia_title`, `wikipedia_id`, `wikidata_id`, `wikidata_description`.
+#' @inheritParams tw_get_wikipedia_page_links
+#' @inheritParams tw_get_image
+#' @inheritParams tw_get_image_metadata
+#'
+#' @return A data frame (a tibble) with four columns: `wikipedia_title`,
+#'   `wikipedia_id`, `wikidata_id`, `wikidata_description`.
 #'
 #' @examples
 #' if (interactive()) {
 #'   tw_get_wikipedia_page_links_single(title = "Margaret Mead", language = "en")
 #' }
-tw_get_wikipedia_page_links_single <- function(url = NULL,
-                                               title = NULL,
-                                               language = tidywikidatar::tw_get_language(),
-                                               cache = NULL,
-                                               overwrite_cache = FALSE,
-                                               cache_connection = NULL,
-                                               disconnect_db = TRUE,
-                                               wait = 1,
-                                               attempts = 10,
-                                               wikipedia_page_qid_df = NULL) {
+tw_get_wikipedia_page_links_single <- function(
+  url = NULL,
+  title = NULL,
+  language = tidywikidatar::tw_get_language(),
+  cache = NULL,
+  overwrite_cache = FALSE,
+  cache_connection = NULL,
+  disconnect_db = TRUE,
+  wait = 1,
+  attempts = 10,
+  wikipedia_page_qid_df = NULL
+) {
   db <- tw_connect_to_cache(
     connection = cache_connection,
     language = language,
     cache = cache
   )
 
-  if (tw_check_cache(cache) == TRUE & overwrite_cache == FALSE) {
+  if (tw_check_cache(cache) & overwrite_cache == FALSE) {
     db_result <- tw_get_cached_wikipedia_page_links(
       title = title,
       language = language,
@@ -188,8 +195,10 @@ tw_get_wikipedia_page_links_single <- function(url = NULL,
         language = language
       )
 
-      return(db_result %>%
-        dplyr::collect())
+      return(
+        db_result %>%
+          dplyr::collect()
+      )
     }
   }
 
@@ -201,7 +210,6 @@ tw_get_wikipedia_page_links_single <- function(url = NULL,
     ),
     "&prop=pageprops&generator=links&gpllimit=500"
   )
-
 
   api_result <- FALSE
 
@@ -220,8 +228,8 @@ tw_get_wikipedia_page_links_single <- function(url = NULL,
 
   if (isFALSE(api_result)) {
     cli::cli_abort(c(
-      "Could not reach the API with {attempts} attempts.",
-      i = "Consider increasing the waiting time between calls with the {.arg wait} parameter or check your internet connection."
+      x = "Could not reach the API with {attempts} attempts.",
+      i = "Consider increasing the waiting time between calls with the {.arg wait} argument or check your internet connection."
     ))
   } else if (length(api_result) == 1) {
     if (is.null(wikipedia_page_qid_df)) {
@@ -238,7 +246,6 @@ tw_get_wikipedia_page_links_single <- function(url = NULL,
       )
     }
 
-
     output_linked_df <- wikipedia_page_qid_df %>%
       dplyr::transmute(
         source_title_url = .data$title_url,
@@ -251,7 +258,7 @@ tw_get_wikipedia_page_links_single <- function(url = NULL,
         language = as.character(wikipedia_page_qid_df$language),
       )
 
-    if (tw_check_cache(cache) == TRUE) {
+    if (tw_check_cache(cache)) {
       tw_write_wikipedia_page_links_to_cache(
         df = output_linked_df,
         cache_connection = db,
@@ -310,8 +317,8 @@ tw_get_wikipedia_page_links_single <- function(url = NULL,
 
     if (isFALSE(api_result)) {
       cli::cli_abort(c(
-        "Could not reach the API with {attempts} attempts.",
-        i = "Consider increasing the waiting time between calls with the {.arg wait} parameter or check your internet connection."
+        x = "Could not reach the API with {attempts} attempts.",
+        i = "Consider increasing the waiting time between calls with the {.arg wait} argument or check your internet connection."
       ))
     } else {
       base_json <- api_result
@@ -344,7 +351,7 @@ tw_get_wikipedia_page_links_single <- function(url = NULL,
         )
 
       if (is.null(description)) {
-        description <- as.character(NA)
+        description <- NA_character_
       }
 
       tibble::tibble(
@@ -398,7 +405,7 @@ tw_get_wikipedia_page_links_single <- function(url = NULL,
     linked_df
   )
 
-  if (tw_check_cache(cache) == TRUE) {
+  if (tw_check_cache(cache)) {
     tw_write_wikipedia_page_links_to_cache(
       df = output_linked_df,
       cache_connection = db,
@@ -419,18 +426,14 @@ tw_get_wikipedia_page_links_single <- function(url = NULL,
 }
 
 
-
-
-
 #' Gets links of Wikipedia pages from local cache
 #'
 #' Mostly used internally.
 #'
-#' @param title Title of a Wikipedia page or final parts of its url. If given, url can be left empty, but language must be provided.
-#' @param language Defaults to language set with `tw_set_language()`; if not set, "en". Use "all_available" to keep all languages. For available language values, see https://www.wikidata.org/wiki/Help:Wikimedia_language_codes/lists/all
-#' @param cache Defaults to NULL. If given, it should be given either TRUE or FALSE. Typically set with `tw_enable_cache()` or `tw_disable_cache()`.
-#' @param cache_connection Defaults to NULL. If NULL, and caching is enabled, `tidywikidatar` will use a local sqlite database. A custom connection to other databases can be given (see vignette `caching` for details).
-#' @param disconnect_db Defaults to TRUE. If FALSE, leaves the connection open.
+#' @inheritParams tw_get_wikipedia_page_links
+#' @inheritParams tw_get_image
+#' @inheritParams tw_get_image_metadata
+#' @inheritParams tw_get
 #'
 #' @return If data present in cache, returns a data frame with cached data.
 #' @export
@@ -450,11 +453,13 @@ tw_get_wikipedia_page_links_single <- function(url = NULL,
 #'
 #'   df_from_cache
 #' }
-tw_get_cached_wikipedia_page_links <- function(title,
-                                               language = tidywikidatar::tw_get_language(),
-                                               cache = NULL,
-                                               cache_connection = NULL,
-                                               disconnect_db = TRUE) {
+tw_get_cached_wikipedia_page_links <- function(
+  title,
+  language = tidywikidatar::tw_get_language(),
+  cache = NULL,
+  cache_connection = NULL,
+  disconnect_db = TRUE
+) {
   if (isFALSE(tw_check_cache(cache = cache))) {
     return(invisible(NULL))
   }
@@ -471,7 +476,7 @@ tw_get_cached_wikipedia_page_links <- function(title,
   )
 
   if (pool::dbExistsTable(conn = db, name = table_name) == FALSE) {
-    if (disconnect_db == TRUE) {
+    if (disconnect_db) {
       tw_disconnect_from_cache(
         cache = cache,
         cache_connection = db,
@@ -492,9 +497,8 @@ tw_get_cached_wikipedia_page_links <- function(title,
     }
   )
 
-
   if (isFALSE(db_result)) {
-    if (disconnect_db == TRUE) {
+    if (disconnect_db) {
       tw_disconnect_from_cache(
         cache = cache,
         cache_connection = db,
@@ -507,7 +511,6 @@ tw_get_cached_wikipedia_page_links <- function(title,
 
   cached_df <- db_result %>%
     dplyr::collect()
-
 
   tw_disconnect_from_cache(
     cache = cache,
@@ -522,16 +525,18 @@ tw_get_cached_wikipedia_page_links <- function(title,
 
 #' Write Wikipedia page links to cache
 #'
-#' Mostly used internally by `tidywikidatar`, use with caution to keep caching consistent.
+#' Mostly used internally by `tidywikidatar`, use with caution to keep caching
+#' consistent.
 #'
-#' @param df A data frame typically generated with `tw_get_wikipedia_page_links()`.
-#' @param language Defaults to language set with `tw_set_language()`; if not set, "en". Use "all_available" to keep all languages. For available language values, see https://www.wikidata.org/wiki/Help:Wikimedia_language_codes/lists/all
-#' @param overwrite_cache Logical, defaults to FALSE. If TRUE, it overwrites the table in the local sqlite database. Useful if the original Wikidata object has been updated.
-#' @param cache Defaults to NULL. If given, it should be given either TRUE or FALSE. Typically set with `tw_enable_cache()` or `tw_disable_cache()`.
-#' @param cache_connection Defaults to NULL. If NULL, and caching is enabled, `tidywikidatar` will use a local sqlite database. A custom connection to other databases can be given (see vignette `caching` for details).
-#' @param disconnect_db Defaults to TRUE. If FALSE, leaves the connection to cache open.
+#' @param df A data frame typically generated with
+#'   [tw_get_wikipedia_page_links()].
+#' @inheritParams tw_get_wikipedia_page_links
+#' @inheritParams tw_get_image
+#' @inheritParams tw_get_image_metadata
+#' @inheritParams tw_get
 #'
-#' @return Silently returns the same data frame provided as input. Mostly used internally for its side effects.
+#' @return Silently returns the same data frame provided as input. Mostly used
+#'   internally for its side effects.
 #'
 #' @export
 #'
@@ -548,12 +553,14 @@ tw_get_cached_wikipedia_page_links <- function(title,
 #'     language = "en"
 #'   )
 #' }
-tw_write_wikipedia_page_links_to_cache <- function(df,
-                                                   language = tidywikidatar::tw_get_language(),
-                                                   cache = NULL,
-                                                   overwrite_cache = FALSE,
-                                                   cache_connection = NULL,
-                                                   disconnect_db = TRUE) {
+tw_write_wikipedia_page_links_to_cache <- function(
+  df,
+  language = tidywikidatar::tw_get_language(),
+  cache = NULL,
+  overwrite_cache = FALSE,
+  cache_connection = NULL,
+  disconnect_db = TRUE
+) {
   if (isFALSE(tw_check_cache(cache = cache))) {
     return(invisible(NULL))
   }
@@ -572,8 +579,9 @@ tw_write_wikipedia_page_links_to_cache <- function(df,
   if (pool::dbExistsTable(conn = db, name = table_name) == FALSE) {
     # do nothing: if table does not exist, previous data cannot be there
   } else {
-    if (overwrite_cache == TRUE) {
-      statement <- glue::glue_sql("DELETE FROM {`table_name`} WHERE source_title_url = {source_title_url*}",
+    if (overwrite_cache) {
+      statement <- glue::glue_sql(
+        "DELETE FROM {`table_name`} WHERE source_title_url = {source_title_url*}",
         source_title_url = unique(df$source_title_url),
         table_name = table_name,
         .con = db
@@ -585,12 +593,7 @@ tw_write_wikipedia_page_links_to_cache <- function(df,
     }
   }
 
-  pool::dbWriteTable(db,
-    name = table_name,
-    value = df,
-    append = TRUE
-  )
-
+  pool::dbWriteTable(db, name = table_name, value = df, append = TRUE)
 
   tw_disconnect_from_cache(
     cache = cache,
@@ -604,13 +607,14 @@ tw_write_wikipedia_page_links_to_cache <- function(df,
 
 #' Reset Wikipedia page link cache
 #'
-#' Removes from cache the table where data typically gathered with `tw_get_wikipedia_page_links()` are stored
+#' Removes from cache the table where data typically gathered with
+#' [tw_get_wikipedia_page_links()] are stored.
 #'
-#' @param language Defaults to language set with `tw_set_language()`; if not set, "en". Use "all_available" to keep all languages. For available language values, see https://www.wikidata.org/wiki/Help:Wikimedia_language_codes/lists/all
-#' @param cache Defaults to NULL. If given, it should be given either TRUE or FALSE. Typically set with `tw_enable_cache()` or `tw_disable_cache()`.
-#' @param cache_connection Defaults to NULL. If NULL, and caching is enabled, `tidywikidatar` will use a local sqlite database by default. A custom connection to other databases can be given (see vignette `caching` for details).
-#' @param disconnect_db Defaults to TRUE. If FALSE, leaves the connection to cache open.
-#' @param ask Logical, defaults to TRUE. If FALSE, and cache folder does not exist, it just creates it without asking (useful for non-interactive sessions).
+#' @inheritParams tw_get_wikipedia_page_links
+#' @inheritParams tw_get_image
+#' @inheritParams tw_get_image_metadata
+#' @inheritParams tw_get
+#' @inheritParams tw_reset_item_cache
 #'
 #' @return Nothing, used for its side effects.
 #' @export
@@ -619,11 +623,13 @@ tw_write_wikipedia_page_links_to_cache <- function(df,
 #' if (interactive()) {
 #'   tw_reset_wikipedia_page_links_cache()
 #' }
-tw_reset_wikipedia_page_links_cache <- function(language = tidywikidatar::tw_get_language(),
-                                                cache = NULL,
-                                                cache_connection = NULL,
-                                                disconnect_db = TRUE,
-                                                ask = TRUE) {
+tw_reset_wikipedia_page_links_cache <- function(
+  language = tidywikidatar::tw_get_language(),
+  cache = NULL,
+  cache_connection = NULL,
+  disconnect_db = TRUE,
+  ask = TRUE
+) {
   db <- tw_connect_to_cache(
     connection = cache_connection,
     language = language,
@@ -639,10 +645,28 @@ tw_reset_wikipedia_page_links_cache <- function(language = tidywikidatar::tw_get
     # do nothing: if table does not exist, nothing to delete
   } else if (isFALSE(ask)) {
     pool::dbRemoveTable(conn = db, name = table_name)
-    cli::cli_alert_info("Wikipedia page links cache reset for language {.val {language}} completed.")
-  } else if (utils::menu(c("Yes", "No"), title = paste0("Are you sure you want to remove from cache the Wikipedia page links cache for language: ", sQuote(language), "?")) == 1) {
+    cli::cli_alert_info(
+      "Wikipedia page links cache reset for language {.val {language}} completed."
+    )
+  } else if (
+    utils::menu(
+      c("Yes", "No"),
+      title = stringr::str_flatten(
+        string = c(
+          "Are you sure you want to remove from cache the Wikipedia page links cache for language: ",
+          sQuote(language),
+          "?"
+        )
+      )
+    ) ==
+      1
+  ) {
     pool::dbRemoveTable(conn = db, name = table_name)
-    cli::cli_alert_info("Wikipedia page links cache reset for language {.val {language}} completed.")
+    cli::cli_alert_info(
+      c(
+        i = "Wikipedia page links cache reset for language {.val {language}} completed."
+      )
+    )
   }
 
   tw_disconnect_from_cache(

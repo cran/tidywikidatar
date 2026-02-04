@@ -1,15 +1,15 @@
 #' Gets labels for all columns with names such as "id" and "property".
 #'
-#' @param df A data frame, typically generated with other `tidywikidatar` functions such as `tw_get_property()`
-#' @param value Logical, defaults to TRUE. If TRUE, it tries to get labels for all supposed id in the column called value. May break if the columns include some value which starts with Q and some digits, but is not a wikidata id.
-#' @param language Defaults to language set with `tw_set_language()`; if not set, "en". Use "all_available" to keep all languages. For available language values, see https://www.wikidata.org/wiki/Help:Wikimedia_language_codes/lists/all
-#' @param cache Defaults to NULL. If given, it should be given either TRUE or FALSE. Typically set with `tw_enable_cache()` or `tw_disable_cache()`.
-#' @param cache_connection Defaults to NULL. If NULL, and caching is enabled, `tidywikidatar` will use a local sqlite database. A custom connection to other databases can be given (see vignette `caching` for details).
-#' @param overwrite_cache Logical, defaults to FALSE. If TRUE, it overwrites the table in the local sqlite database. Useful if the original Wikidata object has been updated.
-#' @param disconnect_db Defaults to TRUE. If FALSE, leaves the connection to cache open.
-#' @param wait In seconds, defaults to 0. Time to wait between queries to Wikidata. If data are cached locally, wait time is not applied. If you are running many queries systematically you may want to add some waiting time between queries.
+#' @param df A data frame, typically generated with other `tidywikidatar`
+#'   functions such as [tw_get_property()].
+#' @param value Logical, defaults to `TRUE`. If `TRUE`, it tries to get labels
+#'   for all supposed id in the column called value. May break if the columns
+#'   include some value which starts with Q and some digits, but is not a
+#'   Wikidata id.
+#' @inheritParams tw_get
 #'
-#' @return A data frame, with the same shape as the input data frame, but with labels instead of identifiers.
+#' @return A data frame, with the same shape as the input data frame, but with
+#'   labels instead of identifiers.
 #' @export
 #'
 #' @examples
@@ -20,14 +20,16 @@
 #'     tw_label()
 #' }
 #' }
-tw_label <- function(df,
-                     value = TRUE,
-                     language = tidywikidatar::tw_get_language(),
-                     cache = NULL,
-                     overwrite_cache = FALSE,
-                     cache_connection = NULL,
-                     disconnect_db = TRUE,
-                     wait = 0) {
+tw_label <- function(
+  df,
+  value = TRUE,
+  language = tidywikidatar::tw_get_language(),
+  cache = NULL,
+  overwrite_cache = FALSE,
+  cache_connection = NULL,
+  disconnect_db = TRUE,
+  wait = 0
+) {
   db <- tw_connect_to_cache(
     connection = cache_connection,
     language = language,
@@ -58,7 +60,6 @@ tw_label <- function(df,
     )
   }
 
-
   if (is.element("property", colnames(df))) {
     df[["property"]] <- tw_get_property_label(
       property = df[["property"]],
@@ -83,7 +84,6 @@ tw_label <- function(df,
     )
   }
 
-
   if (isTRUE(value)) {
     if (is.element("value", colnames(df))) {
       df[["value"]] <- purrr::map_chr(
@@ -91,10 +91,12 @@ tw_label <- function(df,
         .f = function(x) {
           if (is.na(x)) {
             output <- x
-          } else if (stringr::str_starts(
-            string = x,
-            pattern = "Q[[:digit:]]+"
-          )) {
+          } else if (
+            stringr::str_starts(
+              string = x,
+              pattern = "Q[[:digit:]]+"
+            )
+          ) {
             output <- tw_get_label(
               id = x,
               language = language,
@@ -118,10 +120,12 @@ tw_label <- function(df,
         .f = function(x) {
           if (is.na(x)) {
             output <- x
-          } else if (stringr::str_starts(
-            string = x,
-            pattern = "Q[[:digit:]]+"
-          )) {
+          } else if (
+            stringr::str_starts(
+              string = x,
+              pattern = "Q[[:digit:]]+"
+            )
+          ) {
             output <- tw_get_label(
               id = x,
               language = language,

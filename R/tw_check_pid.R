@@ -1,12 +1,20 @@
-#' Ensures that input appears to be a valid Wikidata property id (i.e. it starts with P and is followed only by digits)
+#' Ensures that input appears to be a valid Wikidata property id (i.e. it starts
+#' with P and is followed only by digits)
 #'
 #' Mostly used internally by other functions.
 #'
-#' @param property A character vector of one or more Wikidata property identifiers.
-#' @param logical_vector Logical, defaults to FALSE. If TRUE, returns a logical vector of the same length as input, where TRUE corresponds to seemingly meaningful property identifiers.
-#' @param non_pid_as_NA Logical, defaults to FALSE. If TRUE (and if `logical_vector` is set to FALSE), a vector of the same length is returned, with NA replacing items that are seemingly not meaningful property identifiers.
+#' @param property A character vector of one or more Wikidata property
+#'   identifiers.
+#' @param logical_vector Logical, defaults to `FALSE`. If `TRUE`, returns a
+#'   logical vector of the same length as input, where `TRUE` corresponds to
+#'   seemingly meaningful property identifiers.
+#' @param non_pid_as_NA Logical, defaults to `FALSE`. If `TRUE` (and if
+#'   `logical_vector` is set to `FALSE`), a vector of the same length is
+#'   returned, with `NA` replacing items that are seemingly not meaningful
+#'   property identifiers.
 #'
-#' @return A character vector with only strings appearing to be Wikidata identifiers; possibly shorter than input
+#' @return A character vector with only strings appearing to be Wikidata
+#'   identifiers; possibly shorter than input.
 #' @export
 #'
 #' @examples
@@ -22,9 +30,11 @@
 #'   property = c("P19", "p20", "Not an property id", "20", NA, "Q5", ""),
 #'   non_pid_as_NA = TRUE
 #' )
-tw_check_pid <- function(property,
-                         logical_vector = FALSE,
-                         non_pid_as_NA = FALSE) {
+tw_check_pid <- function(
+  property,
+  logical_vector = FALSE,
+  non_pid_as_NA = FALSE
+) {
   if (is.null(property)) {
     return(character(0L))
   }
@@ -39,10 +49,11 @@ tw_check_pid <- function(property,
     )) %>%
     dplyr::pull("property")
 
-  if (logical_vector == TRUE | non_pid_as_NA == TRUE) {
+  if (logical_vector | non_pid_as_NA) {
     output_l <- stringr::str_to_upper(property) %in% output_v
-    if (non_pid_as_NA == TRUE) {
-      return(dplyr::if_else(condition = output_l,
+    if (non_pid_as_NA) {
+      return(dplyr::if_else(
+        condition = output_l,
         true = stringr::str_to_upper(property),
         false = NA_character_,
         missing = NA_character_
