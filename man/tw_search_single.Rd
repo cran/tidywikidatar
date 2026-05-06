@@ -11,6 +11,7 @@ tw_search_single(
   language = tidywikidatar::tw_get_language(),
   response_language = tidywikidatar::tw_get_language(),
   limit = 10,
+  retry = 10,
   include_search = FALSE,
   user_agent = tidywikidatar::tw_get_user_agent(),
   cache = NULL,
@@ -42,6 +43,13 @@ available language codes}.}
 
 \item{limit}{Maximum numbers of responses to be given.}
 
+\item{retry}{Defaults to 10. Maximum number of times to retry if the API
+throws an error, such as "too many requests". Each time, it will wait as
+much time as requested by the API. Notice that this can be a long time,
+e.g. 30 minutes. Set to \code{FALSE} if you prefer the API to throw an error
+immediately. Consider adjusting the \code{wait} parameter, or customising the
+\code{user_agent} if relevant.}
+
 \item{include_search}{Logical, defaults to \code{FALSE}. If \code{TRUE}, the search is
 returned as an additional column.}
 
@@ -69,11 +77,13 @@ between queries.}
 \value{
 A data frame (a tibble) with three columns (\code{id}, \code{label}, and
 \code{description}), and as many rows as there are results (by default, limited
-to 10). Four columns when \code{include_search} is set to TRUE.
+to 10). Four columns when \code{include_search} is set to \code{TRUE}.
 }
 \description{
 This search returns only items, use \code{\link[=tw_search_property]{tw_search_property()}} for properties.
 }
 \examples{
-tidywikidatar:::tw_search_single(search = "Sylvia Pankhurst")
+\dontrun{
+  tidywikidatar:::tw_search_single(search = "Sylvia Pankhurst")
+}
 }

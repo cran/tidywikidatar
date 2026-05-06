@@ -1,6 +1,6 @@
 Package: tidywikidatar
 Title: Explore 'Wikidata' Through Tidy Data Frames
-Version: 0.6.1
+Version: 0.6.2
 Authors@R: 
     c(person(given = "Giorgio",
              family = "Comai",
@@ -12,7 +12,6 @@ Authors@R:
 Description: Query 'Wikidata' API <https://www.wikidata.org/wiki/Wikidata:Main_Page> with ease, get tidy data frames in response, and cache data in a local database.
 License: MIT + file LICENSE
 Encoding: UTF-8
-RoxygenNote: 7.3.3
 Imports: magrittr, dplyr (>= 1.1.0), tidyr, stringr, glue, DBI,
         RSQLite, tibble, purrr, cli, fs, rlang (>= 0.1.2), progress,
         jsonlite, pool, vctrs, httr2
@@ -25,11 +24,12 @@ BugReports: https://github.com/EDJNet/tidywikidatar/issues
 VignetteBuilder: knitr
 Depends: R (>= 3.5)
 LazyData: true
+Config/roxygen2/version: 8.0.0
 NeedsCompilation: no
-Packaged: 2026-02-09 21:42:38 UTC; g
+Packaged: 2026-05-06 12:52:38 UTC; g
 Author: Giorgio Comai [aut, cre, cph] (ORCID:
     <https://orcid.org/0000-0002-0515-9542>),
   EDJNet [fnd]
 Maintainer: Giorgio Comai <giorgio.comai@cci.tn.it>
 Repository: CRAN
-Date/Publication: 2026-02-09 23:30:02 UTC
+Date/Publication: 2026-05-06 14:20:02 UTC

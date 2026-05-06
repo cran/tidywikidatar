@@ -1,6 +1,6 @@
 #' Get Wikidata label in given language
 #'
-#' @param id_df Default to NULL. If given, it should be a dataframe typically
+#' @param id_df Default to `NULL`. If given, it should be a dataframe typically
 #'   generated with [tw_get()], and is used instead of calling Wikidata or
 #'   using SQLite cache. Ignored when `id` is of length more than one.
 #' @inheritParams tw_get_image
@@ -11,7 +11,7 @@
 #' @export
 #'
 #' @examples
-#'
+#' \dontrun{
 #' tw_get_label(
 #'   id = c(
 #'     "Q180099",
@@ -21,7 +21,6 @@
 #' )
 #'
 #' # If a label is not available, a NA value is returned
-#' if (interactive()) {
 #'   tw_get_label(
 #'     id = c(
 #'       "Q64733534",
@@ -39,7 +38,9 @@ tw_get_label <- function(
   overwrite_cache = FALSE,
   cache_connection = NULL,
   disconnect_db = TRUE,
-  wait = 0
+  wait = 0,
+  retry = 10,
+  user_agent = tidywikidatar::tw_get_user_agent()
 ) {
   if (is.data.frame(id)) {
     id <- id[["id"]]
@@ -60,6 +61,8 @@ tw_get_label <- function(
       cache_connection = cache_connection,
       language = language,
       wait = wait,
+      retry = retry,
+      user_agent = user_agent,
       disconnect_db = disconnect_db
     )
   } else {
@@ -79,6 +82,8 @@ tw_get_label <- function(
           cache_connection = cache_connection,
           language = language,
           wait = wait,
+          retry = retry,
+          user_agent = user_agent,
           disconnect_db = disconnect_db
         )
       )
@@ -104,6 +109,8 @@ tw_get_label <- function(
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#'
 #' tw_get_description(
 #'   id = c(
 #'     "Q180099",
@@ -111,6 +118,8 @@ tw_get_label <- function(
 #'   ),
 #'   language = "en"
 #' )
+#'
+#' }
 tw_get_description <- function(
   id,
   language = tidywikidatar::tw_get_language(),
@@ -119,7 +128,9 @@ tw_get_description <- function(
   overwrite_cache = FALSE,
   cache_connection = NULL,
   disconnect_db = TRUE,
-  wait = 0
+  wait = 0,
+  retry = 10,
+  user_agent = tidywikidatar::tw_get_user_agent()
 ) {
   if (is.data.frame(id)) {
     id <- id$id
@@ -133,6 +144,8 @@ tw_get_description <- function(
       cache_connection = cache_connection,
       language = language,
       wait = wait,
+      retry = retry,
+      user_agent = user_agent,
       disconnect_db = disconnect_db
     )
   } else {
@@ -152,6 +165,8 @@ tw_get_description <- function(
           cache_connection = cache_connection,
           language = language,
           wait = wait,
+          retry = retry,
+          user_agent = user_agent,
           disconnect_db = disconnect_db
         )
       )
@@ -179,7 +194,9 @@ tw_get_description <- function(
 #' @export
 #'
 #' @examples
-#' tw_get_wikipedia(id = "Q180099")
+#' \dontrun{
+#'   tw_get_wikipedia(id = "Q180099")
+#' }
 tw_get_wikipedia <- function(
   id,
   full_link = TRUE,
@@ -189,7 +206,9 @@ tw_get_wikipedia <- function(
   overwrite_cache = FALSE,
   cache_connection = NULL,
   disconnect_db = TRUE,
-  wait = 0
+  wait = 0,
+  retry = 10,
+  user_agent = tidywikidatar::tw_get_user_agent()
 ) {
   if (is.data.frame(id)) {
     id <- id$id
@@ -211,7 +230,9 @@ tw_get_wikipedia <- function(
       cache_connection = cache_connection,
       disconnect_db = disconnect_db,
       language = language,
-      wait = wait
+      wait = wait,
+      retry = retry,
+      user_agent = user_agent
     )
   } else {
     current_id <- id
@@ -230,6 +251,8 @@ tw_get_wikipedia <- function(
           cache_connection = cache_connection,
           language = language,
           wait = wait,
+          retry = retry,
+          user_agent = user_agent,
           disconnect_db = disconnect_db
         )
       )

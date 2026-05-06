@@ -14,8 +14,10 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' tw_search(search = "Margaret Mead", limit = 3) %>%
 #'   tw_filter(p = "P31", q = "Q5")
+#' }
 tw_filter <- function(
   search,
   p,
@@ -98,8 +100,10 @@ tw_filter <- function(
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' tw_search("Margaret Mead") %>%
 #'   tw_filter_first(p = "P31", q = "Q5")
+#' }
 tw_filter_first <- function(
   search,
   p,
@@ -142,7 +146,7 @@ tw_filter_first <- function(
   first_match_id <- purrr::detect(
     .x = seq_along(search_result$id),
     .f = function(current_row_number) {
-      search_result %>%
+      check_v <- search_result %>%
         dplyr::slice(current_row_number) %>%
         tw_filter(
           p = p,
@@ -157,8 +161,9 @@ tw_filter_first <- function(
           cache_connection = cache_connection,
           disconnect_db = FALSE
         ) %>%
-        nrow() %>%
-        `>`(0)
+        nrow()
+
+      check_v > 0
     }
   )
 
@@ -191,10 +196,12 @@ tw_filter_first <- function(
 #' @export
 #'
 #' @examples
-#' tw_search("Ruth Benedict")
+#' \dontrun{
+#'   tw_search("Ruth Benedict")
 #'
-#' tw_search("Ruth Benedict") %>%
-#'   tw_filter_people()
+#'   tw_search("Ruth Benedict") %>%
+#'     tw_filter_people()
+#' }
 tw_filter_people <- function(
   search,
   language = tidywikidatar::tw_get_language(),

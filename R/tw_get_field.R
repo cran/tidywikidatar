@@ -15,9 +15,14 @@
 #' @export
 #'
 #' @examples
-#'
+#' \dontrun{
 #' tw_get("Q180099") %>%
 #'   tw_get_field(field = "label", id = "Q180099")
+#' }
+#'
+#' # using test item for the sake of this example
+#' tw_get("Q180099", id_l = tw_test_items) %>%
+#'  tw_get_field(field = "label", id = "Q180099")
 tw_get_field <- function(
   df,
   field,

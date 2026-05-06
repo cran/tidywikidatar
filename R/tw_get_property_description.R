@@ -10,7 +10,9 @@
 #' @export
 #'
 #' @examples
-#' tw_get_property_description(property = "P31")
+#' \dontrun{
+#'   tw_get_property_description(property = "P31")
+#' }
 tw_get_property_description <- function(
   property,
   language = tidywikidatar::tw_get_language(),
@@ -109,7 +111,9 @@ tw_get_property_description <- function(
 #'   requested language.
 #'
 #' @examples
+#' \dontrun{
 #' tidywikidatar:::tw_get_property_description_single(property = "P31")
+#' }
 tw_get_property_description_single <- function(
   property,
   language = tidywikidatar::tw_get_language(),

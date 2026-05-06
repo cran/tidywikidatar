@@ -3,6 +3,10 @@ library("tidywikidatar")
 
 test_that("check if image returned when valid id given", {
   testthat::skip_if_offline()
+  testthat::skip_on_cran()
+  testthat::skip_on_ci()
+
+  tw_set_cache_folder(path = tempdir())
 
   test_id_df <- tw_get(
     id = "Q2",
@@ -22,8 +26,6 @@ test_that("check if image returned when valid id given", {
     }
   )
 
-  tw_set_cache_folder(path = tempdir())
-
   expect_true(
     object = {
       tw_get_image(
@@ -40,6 +42,8 @@ test_that("check if image returned when valid id given", {
 
 test_that("check if image returned when invalid id given", {
   testthat::skip_if_offline()
+  testthat::skip_on_cran()
+  testthat::skip_on_ci()
 
   test_id_df <- tw_get(
     id = "Q2",
@@ -92,6 +96,7 @@ test_that("check if image returned when invalid id given", {
 test_that("check if image metadata returned correctly with or without cache", {
   testthat::skip_if_offline()
   testthat::skip_on_cran() # to prevent error due to calls to Wikimedia Commons from CRAN server
+  testthat::skip_on_ci()
 
   test_id_df <- tw_get(
     id = "Q2",
@@ -127,7 +132,8 @@ test_that("check if image metadata returned correctly with or without cache", {
         id = c("Q2", NA, "not_an_id", "Q5"),
         only_first = TRUE,
         cache = TRUE,
-        id_df = test_id_df
+        id_df = test_id_df,
+        wait = 10
       )
 
       list(
@@ -153,7 +159,8 @@ test_that("check if image metadata returned correctly with or without cache", {
         id = c("Q2", NA, "not_an_id", "Q5"),
         only_first = TRUE,
         cache = FALSE,
-        id_df = test_id_df
+        id_df = test_id_df,
+        wait = 10
       )
 
       list(

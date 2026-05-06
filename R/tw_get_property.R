@@ -12,6 +12,7 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' # Who were the doctoral advisors - P184 - of Margaret Mead - Q180099?
 #' advisors <- tw_get_property(id = "Q180099", p = "P184")
 #' advisors
@@ -20,7 +21,6 @@
 #'
 #' # It is also possible to get one property for many id
 #'
-#' if (interactive()) {
 #'   tw_get_property(
 #'     id = c(
 #'       "Q180099",
@@ -45,7 +45,9 @@ tw_get_property <- function(
   overwrite_cache = FALSE,
   cache_connection = NULL,
   disconnect_db = TRUE,
-  wait = 0
+  wait = 0,
+  retry = 10,
+  user_agent = tidywikidatar::tw_get_user_agent()
 ) {
   if (is.data.frame(id)) {
     id <- id$id
@@ -65,7 +67,9 @@ tw_get_property <- function(
       cache_connection = cache_connection,
       language = language,
       wait = wait,
-      disconnect_db = disconnect_db
+      disconnect_db = disconnect_db,
+      retry = retry,
+      user_agent = user_agent
     )
   } else {
     id_df <- id_df %>%
@@ -83,7 +87,9 @@ tw_get_property <- function(
           cache_connection = cache_connection,
           language = language,
           wait = wait,
-          disconnect_db = disconnect_db
+          disconnect_db = disconnect_db,
+          retry = retry,
+          user_agent = user_agent
         )
       )
     }
@@ -143,7 +149,7 @@ tw_get_property <- function(
 #' # no matter how many values for each id/property
 #'
 #'
-#' if (interactive()) {
+#' \dontrun{
 #'   tw_get_property_same_length(
 #'     id = c(
 #'       "Q180099",
@@ -196,7 +202,9 @@ tw_get_property_same_length <- function(
   overwrite_cache = FALSE,
   cache_connection = NULL,
   disconnect_db = TRUE,
-  wait = 0
+  wait = 0,
+  retry = 10,
+  user_agent = tidywikidatar::tw_get_user_agent()
 ) {
   if (is.data.frame(id)) {
     id <- id$id
@@ -217,7 +225,9 @@ tw_get_property_same_length <- function(
     overwrite_cache = overwrite_cache,
     cache_connection = db,
     disconnect_db = FALSE,
-    wait = wait
+    wait = wait,
+    retry = retry,
+    user_agent = user_agent
   )
 
   if (is.null(property_df)) {
@@ -435,7 +445,9 @@ tw_get_p <- tw_get_property_same_length
 #' @export
 #'
 #' @examples
-#' tw_get_p1(id = "Q180099", "P26")
+#' \dontrun{
+#'   tw_get_p1(id = "Q180099", "P26")
+#' }
 tw_get_p1 <- function(
   id,
   p,
@@ -446,7 +458,9 @@ tw_get_p1 <- function(
   overwrite_cache = FALSE,
   cache_connection = NULL,
   disconnect_db = TRUE,
-  wait = 0
+  wait = 0,
+  retry = 10,
+  user_agent = tidywikidatar::tw_get_user_agent()
 ) {
   tw_get_property_same_length(
     id = id,
@@ -460,6 +474,8 @@ tw_get_p1 <- function(
     overwrite_cache = overwrite_cache,
     cache_connection = cache_connection,
     disconnect_db = disconnect_db,
-    wait = wait
+    wait = wait,
+    retry = retry,
+    user_agent = user_agent
   )
 }

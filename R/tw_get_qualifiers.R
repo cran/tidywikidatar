@@ -36,6 +36,8 @@ tw_get_qualifiers_single <- function(
   cache_connection = NULL,
   disconnect_db = TRUE,
   wait = 0,
+  retry = 10,
+  user_agent = tidywikidatar::tw_get_user_agent(),
   id_l = NULL
 ) {
   if (tw_check_cache(cache) & !overwrite_cache) {
@@ -71,16 +73,22 @@ tw_get_qualifiers_single <- function(
       list()
 
     if (length(w) == 0) {
-      w <- tryCatch(tw_get_item(id = id), error = function(e) {
-        as.character(e[[1]])
-      })
+      w <- tryCatch(
+        tw_get_item(id = id, retry = retry, user_agent = user_agent),
+        error = function(e) {
+          as.character(e[[1]])
+        }
+      )
     } else if (length(w) > 1) {
       w <- w[1]
     }
   } else {
-    w <- tryCatch(tw_get_item(id = id), error = function(e) {
-      as.character(e[[1]])
-    })
+    w <- tryCatch(
+      tw_get_item(id = id, retry = retry, user_agent = user_agent),
+      error = function(e) {
+        as.character(e[[1]])
+      }
+    )
   }
 
   if (is.character(w)) {
@@ -158,6 +166,8 @@ tw_get_qualifiers <- function(
   cache_connection = NULL,
   disconnect_db = TRUE,
   wait = 0,
+  retry = 10,
+  user_agent = tidywikidatar::tw_get_user_agent(),
   id_l = NULL
 ) {
   if (is.data.frame(id)) {
@@ -182,7 +192,9 @@ tw_get_qualifiers <- function(
       cache_connection = db,
       disconnect_db = disconnect_db,
       wait = wait,
-      id_l = id_l
+      id_l = id_l,
+      retry = retry,
+      user_agent = user_agent
     ))
   } else if (length(id) > 1 | length(p) > 1) {
     if (overwrite_cache | !tw_check_cache(cache)) {
@@ -202,7 +214,9 @@ tw_get_qualifiers <- function(
             cache_connection = db,
             disconnect_db = FALSE,
             wait = wait,
-            id_l = id_l
+            id_l = id_l,
+            retry = retry,
+            user_agent = user_agent
           )
         }
       )
@@ -258,7 +272,9 @@ tw_get_qualifiers <- function(
               cache_connection = db,
               disconnect_db = FALSE,
               wait = wait,
-              id_l = id_l
+              id_l = id_l,
+              retry = retry,
+              user_agent = user_agent
             )
           }
         )
@@ -399,7 +415,7 @@ tw_get_cached_qualifiers <- function(
 #' @export
 #'
 #' @examples
-#'
+#' if (interactive()) {
 #' q_df <- tw_get_qualifiers(
 #'   id = "Q180099",
 #'   p = "P26",
@@ -412,6 +428,7 @@ tw_get_cached_qualifiers <- function(
 #'   language = "en",
 #'   cache = TRUE
 #' )
+#' }
 tw_write_qualifiers_to_cache <- function(
   qualifiers_df,
   language = tidywikidatar::tw_get_language(),

@@ -13,7 +13,9 @@ tw_get_property(
   overwrite_cache = FALSE,
   cache_connection = NULL,
   disconnect_db = TRUE,
-  wait = 0
+  wait = 0,
+  retry = 10,
+  user_agent = tidywikidatar::tw_get_user_agent()
 )
 }
 \arguments{
@@ -54,6 +56,16 @@ cache open.}
 Wikidata. If data are cached locally, wait time is not applied. If you are
 running many queries systematically you may want to add some waiting time
 between queries.}
+
+\item{retry}{Defaults to 10. Maximum number of times to retry if the API
+throws an error, such as "too many requests". Each time, it will wait as
+much time as requested by the API. Notice that this can be a long time,
+e.g. 30 minutes. Set to \code{FALSE} if you prefer the API to throw an error
+immediately. Consider adjusting the \code{wait} parameter, or customising the
+\code{user_agent} if relevant.}
+
+\item{user_agent}{Defaults to \code{NULL}. If not given, implicitly defaults to
+current package name (\code{tidywikidatar}) and version.}
 }
 \value{
 A tibble, corresponding to the value for the given property. A tibble of zero rows if no relevant property found.
@@ -62,6 +74,7 @@ A tibble, corresponding to the value for the given property. A tibble of zero ro
 Get Wikidata property of one or more items as a tidy data frame
 }
 \examples{
+\dontrun{
 # Who were the doctoral advisors - P184 - of Margaret Mead - Q180099?
 advisors <- tw_get_property(id = "Q180099", p = "P184")
 advisors
@@ -70,7 +83,6 @@ advisors
 
 # It is also possible to get one property for many id
 
-if (interactive()) {
   tw_get_property(
     id = c(
       "Q180099",
